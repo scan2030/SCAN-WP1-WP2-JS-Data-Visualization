@@ -185,7 +185,7 @@
 </div>
 
 <div id="cohortData" class="tab">
-    <h2>Proportion of  Patients with Ulcerative Colitis Not Treated by Biologicals or Targeted Synthetic Medicines in 180 Days in Each Year</h2>
+    <h2>Proportion of  Patients with Ulcerative Colitis Not Treated by Advanced Therapy in 180 Days in Each Year</h2>
     <canvas id="treatedPatientsChart"></canvas>
 </div>
 
@@ -2763,22 +2763,22 @@ function loadTreatedPatientsChart() {
                     labels: years,
                     datasets: [
                         {
-                            label: 'Surgery/Death',
+                            label: 'Untreated (Surgery/Death)',
                             data: surgeryDeath,
                             backgroundColor: '#ff7f0e'  // Orange instead of gray
                         },
                         {
-                            label: '<30 Days',
+                            label: 'Treated with Advanced Therapy within 30 Days',
                             data: under30,
                             backgroundColor: '#1f77b4'  // Dark blue
                         },
                         {
-                            label: '30-179 Days',
+                            label: 'Treated with Advanced Therapy in 30-179 Days',
                             data: between30_179,
                             backgroundColor: '#2ca02c'  // Green
                         },
                         {
-                            label: '≥180 Days',
+                            label: 'Untreated with Advanced Therapy within 180 Days',
                             data: over180,
                             backgroundColor: '#d62728'  // Red
                         }
@@ -2845,7 +2845,7 @@ function loadTreatedPatientsChart() {
                 
                 // Create a subtitle element
                 const subtitle = document.createElement('div');
-                subtitle.textContent = '% Proportion of Patients with Ulcerative Colitis Not Treated in 180 Days';
+                subtitle.textContent = '% Proportion of Patients with Ulcerative Colitis Not Treated with Advanced Therapy in 180 Days';
                 subtitle.style.textAlign = 'center';
                 subtitle.style.color = '#666';
                 subtitle.style.fontSize = '12px';
