@@ -537,7 +537,10 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         // Always add the 'hidden' class initially for forecast items
-        legendItem.classList.add('hidden');
+        const meta = chart.getDatasetMeta(item.datasetIndex);
+        if (meta.hidden) {
+            legendItem.classList.add('hidden');
+        }
         legendItem.dataset.index = item.datasetIndex;
         
         const colorSpan = document.createElement('span');
@@ -793,7 +796,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    ////hidden: true // Start hidden
                 },
                 // Total Cases - Forecast
                 {
@@ -805,7 +808,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#fb8500',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Cases - Upper Confidence Interval
                 {
@@ -817,7 +820,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Lower Confidence Interval
                 {
@@ -829,7 +832,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Forecast
                 {
@@ -841,7 +844,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#023047',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Upper Confidence Interval
                 {
@@ -853,7 +856,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Lower Confidence Interval
                 {
@@ -865,7 +868,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Forecast
                 {
@@ -877,7 +880,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#8ecae6',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Upper Confidence Interval
                 {
@@ -889,7 +892,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 }
             ]
         },
@@ -963,7 +966,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Year'
                     },
-                    max: years.length - 1 // Initially show only historical years
+                    //max: years.length - 1 // Initially show only historical years
                 }
             }
         }
@@ -1093,7 +1096,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Rate - Forecast
                 {
@@ -1105,7 +1108,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#fb8500',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Rate - Upper Confidence Interval
                 {
@@ -1117,7 +1120,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Lower Confidence Interval
                 {
@@ -1129,7 +1132,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Forecast
                 {
@@ -1141,7 +1144,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#023047',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Upper Confidence Interval
                 {
@@ -1153,7 +1156,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Lower Confidence Interval
                 {
@@ -1165,7 +1168,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Forecast
                 {
@@ -1177,7 +1180,7 @@ function updateIncidenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#8ecae6',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Upper Confidence Interval
                 {
@@ -1189,7 +1192,7 @@ function updateIncidenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 }
             ]
         },
@@ -1263,7 +1266,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Year'
                     },
-                    max: years.length - 1 // Initially show only historical years
+                    //max: years.length - 1 // Initially show only historical years
                 }
             }
         }
@@ -1411,7 +1414,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Cases - Forecast
                 {
@@ -1423,7 +1426,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#fb8500',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Cases - Upper Confidence Interval
                 {
@@ -1435,7 +1438,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Lower Confidence Interval
                 {
@@ -1447,7 +1450,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Forecast
                 {
@@ -1459,7 +1462,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#023047',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Cases - Upper Confidence Interval
                 {
@@ -1471,7 +1474,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Lower Confidence Interval
                 {
@@ -1483,7 +1486,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Forecast
                 {
@@ -1495,7 +1498,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#8ecae6',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Cases - Upper Confidence Interval
                 {
@@ -1507,7 +1510,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 }
             ]
         },
@@ -1581,7 +1584,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: 'Year'
                     },
-                    max: years.length - 1 // Initially show only historical years
+                    //max: years.length - 1 // Initially show only historical years
                 }
             }
         }
@@ -1711,7 +1714,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Rate - Forecast
                 {
@@ -1723,7 +1726,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#fb8500',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Total Rate - Upper Confidence Interval
                 {
@@ -1735,7 +1738,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Lower Confidence Interval
                 {
@@ -1747,7 +1750,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Forecast
                 {
@@ -1759,7 +1762,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#023047',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Male Rate - Upper Confidence Interval
                 {
@@ -1771,7 +1774,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Lower Confidence Interval
                 {
@@ -1783,7 +1786,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Forecast
                 {
@@ -1795,7 +1798,7 @@ function updatePrevalenceCharts() {
                     borderDash: [5, 5],
                     pointRadius: 3,
                     pointBackgroundColor: '#8ecae6',
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 },
                 // Female Rate - Upper Confidence Interval
                 {
@@ -1807,7 +1810,7 @@ function updatePrevalenceCharts() {
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    hidden: true // Start hidden
+                    //hidden: true // Start hidden
                 }
             ]
         },
@@ -1881,7 +1884,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: 'Year'
                     },
-                    max: years.length - 1 // Initially show only historical years
+                    //max: years.length - 1 // Initially show only historical years
                 }
             }
         }
