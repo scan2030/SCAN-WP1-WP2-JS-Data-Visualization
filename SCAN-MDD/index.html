@@ -1,405 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Incidence and Prevalence</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
-<script src="https://unpkg.com/patternomaly@1.3.2/dist/patternomaly.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incidence and Prevalence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
+    <script src="https://unpkg.com/patternomaly@1.3.2/dist/patternomaly.min.js"></script>
 <style>
-* {
-    box-sizing: border-box;
-}
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .tab {
+            visibility: hidden;
+            height: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .tab.active {
+            visibility: visible;
+            height: auto;
+            opacity: 1;
+        }
+        .tab-button {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: none;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid blue;
+            background-color: #e7e7e7;
+        }
+        #chart-container {
+            width: 80%;
+            margin: auto;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            margin: 5px;
+        }
+        button.active {
+            background-color: #d3d3d3;
+        }
+        canvas {
+            max-width: 800px;
+            height:  400px;
+            margin: auto;
+        }
+        .chart-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 10px;
-}
+        #kmChart {
+            width: 800px;
+            height: 400px;
+            margin: auto;
+            display: block;
+        }
+        #sankeyContainer {
+            text-align: center;
+            margin: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 600px; /* Adjust height as needed */
+            border: none; /* Remove border */
+        }
+        
+        /* Custom legend styles */
+        .custom-legend {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 10px auto;
+            max-width: 800px;
+        }
 
-.tab {
-    visibility: hidden;
-    height: 0;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
+        
+        .legend-text {
+            font-family: Arial, sans-serif; /* Change font family */
+            font-size: 12px;               /* Change font size */
+            font-weight: 530;              /* Control font weight (normal=400, bold=700) */
+            color: #545151;                /* Change text color */
+        }
 
-.tab.active {
-    visibility: visible;
-    height: auto;
-    opacity: 1;
-}
-
-.tab-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 20px;
-    justify-content: center;
-}
-
-.tab-button {
-    padding: 8px 12px;
-    cursor: pointer;
-    background-color: #f1f1f1;
-    border: none;
-    border-bottom: 2px solid transparent;
-    font-size: 14px;
-    flex: 1;
-    min-width: 100px;
-    text-align: center;
-}
-
-.tab-button.active {
-    border-bottom: 2px solid blue;
-    background-color: #e7e7e7;
-}
-
-#chart-container {
-    width: 100%;
-    max-width: 100%;
-    margin: auto;
-    padding: 0 10px;
-}
-
-.button-container {
-    text-align: center;
-    margin: 20px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-}
-
-button {
-    margin: 5px;
-    padding: 8px 16px;
-    font-size: 14px;
-    min-width: 120px;
-}
-
-button.active {
-    background-color: #d3d3d3;
-}
-
-.chart-wrapper {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 10px;
-    position: relative;
-}
-
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 400px;
-}
-
-canvas {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-}
-
-#kmChart {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    margin: auto;
-    display: block;
-}
-
-#sankeyContainer {
-    text-align: center;
-    margin: 20px 0;
-    width: 100%;
-}
-
-iframe {
-    width: 100%;
-    height: 400px;
-    border: none;
-}
-
-/* Custom legend styles */
-.custom-legend {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 10px auto;
-    width: 100%;
-    max-width: 100%;
-}
-
-.legend-text {
-    font-family: Arial, sans-serif;
-    font-size: 11px;
-    font-weight: 530;
-    color: #545151;
-}
-
-.legend-row {
-    display: flex;
-    justify-content: center;
-    margin: 5px 0;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin: 2px 5px;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.legend-item.hidden span.legend-text {
-    text-decoration: line-through;
-}
-
-.legend-item.hidden .legend-color {
-    opacity: 0.5;
-}
-
-.legend-color {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    margin-right: 4px;
-    border-radius: 2px;
-    flex-shrink: 0;
-}
-
-.legend-dash {
-    border-top-style: dashed;
-    border-top-width: 2px;
-}
-
-/* SVG responsive styles */
-#chart {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-}
-
-/* Cost legend responsive styles */
-#cost-legend {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 10px auto 20px auto !important;
-    padding: 0 10px;
-}
-
-#cost-legend div {
-    flex-wrap: wrap !important;
-    gap: 5px !important;
-}
-
-#cost-legend div > div {
-    margin: 2px 5px !important;
-    font-size: 11px !important;
-}
-
-/* Mobile specific styles */
-@media (max-width: 768px) {
-    body {
-        padding: 5px;
-    }
-    
-    h2 {
-        font-size: 18px;
-        text-align: center;
-        margin: 10px 0;
-    }
-    
-    .tab-button {
-        padding: 6px 8px;
-        font-size: 12px;
-        min-width: 80px;
-    }
-    
-    .button-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .button-container button {
-        width: 200px;
-        max-width: 90%;
-    }
-    
-    .chart-container {
-        height: 300px;
-    }
-    
-    .legend-text {
-        font-size: 10px;
-    }
-    
-    .legend-item {
-        font-size: 10px;
-        margin: 1px 3px;
-    }
-    
-    .legend-color {
-        width: 10px;
-        height: 10px;
-        margin-right: 3px;
-    }
-    
-    .legend-row {
-        gap: 3px;
-    }
-    
-    /* Force charts to be responsive */
-    .chart-wrapper {
-        padding: 0 5px;
-    }
-    
-    /* SVG charts responsive */
-    #chart {
-        width: 100% !important;
-        height: 250px !important;
-    }
-    
-    /* Cost legend mobile */
-    #cost-legend div > div {
-        margin: 1px 2px !important;
-        font-size: 10px !important;
-    }
-    
-    iframe {
-        height: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .tab-button {
-        font-size: 11px;
-        padding: 5px 6px;
-        min-width: 70px;
-    }
-    
-    .chart-container {
-        height: 250px;
-    }
-    
-    .legend-text {
-        font-size: 9px;
-    }
-    
-    .legend-item {
-        font-size: 9px;
-        margin: 1px 2px;
-    }
-    
-    #chart {
-        height: 200px !important;
-    }
-}
-</style>
+        
+        .legend-row {
+            display: flex;
+            justify-content: center;
+            margin: 5px 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        
+        .legend-item.hidden span.legend-text {
+            text-decoration: line-through;
+        }
+        
+        .legend-item.hidden .legend-color {
+            opacity: 0.5;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
+        
+        .legend-dash {
+            border-top-style: dashed;
+            border-top-width: 2px;
+        }
+    </style>
 </head>
 <body>
 <h2>Current and Forecasted Depression Burden in Hong Kong</h2>
-<div class="tab-buttons">
-<button class="tab-button active" onclick="openTab(event, 'incidence')">Incidence</button>
-<button class="tab-button" onclick="openTab(event, 'prevalence')">Prevalence</button>
-<button class="tab-button" onclick="openTab(event, 'chart-container')">Cost</button>
-<button class="tab-button" onclick="openTab(event, 'cohortData')">Unmet Needs</button>
-<button class="tab-button" onclick="openTab(event, 'kmChartContainer')">Survival Probability</button>
-<!--<button class="tab-button" onclick="openTab(event, 'sankeyContainer')">Treatment Pathway </button> -->
+<div>
+    <button class="tab-button active" onclick="openTab(event, 'incidence')">Incidence</button>
+    <button class="tab-button" onclick="openTab(event, 'prevalence')">Prevalence</button>
+    <button class="tab-button" onclick="openTab(event, 'chart-container')">Cost</button>
+    <button class="tab-button" onclick="openTab(event, 'cohortData')">Unmet Needs</button>
+    <button class="tab-button" onclick="openTab(event, 'kmChartContainer')">Survival Probability</button>
+    <!--<button class="tab-button" onclick="openTab(event, 'sankeyContainer')">Treatment Pathway </button> -->
+
 </div>
 
 <div id="incidence" class="tab active">
-<h2>Depression Incidence</h2>
-<div class="button-container">
-<button class="active" onclick="toggleChart('incidence', event)">Incident Cases</button>
-<button onclick="toggleChart('rate', event)">Incidence Rate</button>
-</div>
-<div id="incidenceChartContainer" class="chart-wrapper">
-<div id="incidenceLegend" class="custom-legend"></div>
-<div class="chart-container">
-<canvas id="incidenceChart"></canvas>
-</div>
-</div>
-<div id="rateChartContainer" class="chart-wrapper" style="display: none;">
-<div id="rateLegend" class="custom-legend"></div>
-<div class="chart-container">
-<canvas id="rateChart"></canvas>
-</div>
-</div>
+    <h2>Depression Incidence</h2>
+    <div class="button-container">
+        <button class="active" onclick="toggleChart('incidence', event)">Incident Cases</button>
+        <button onclick="toggleChart('rate', event)">Incidence Rate</button>
+    </div>
+    <div id="incidenceChartContainer" class="chart-wrapper">
+        <div id="incidenceLegend" class="custom-legend"></div>
+        <canvas id="incidenceChart"></canvas>
+    </div>
+    <div id="rateChartContainer" class="chart-wrapper" >
+        <div id="rateLegend" class="custom-legend"></div>
+        <canvas id="rateChart"></canvas>
+    </div>
 </div>
 
 <div id="prevalence" class="tab">
-<h2>Depression Prevalence</h2>
-<div class="button-container">
-<button class="active" onclick="togglePrevalence('number', event)">Prevalent Cases</button>
-<button onclick="togglePrevalence('rate', event)">Prevalence Rate</button>
-</div>
-<div id="prevalenceNumberChartContainer" class="chart-wrapper">
-<div id="prevalenceNumberLegend" class="custom-legend"></div>
-<div class="chart-container">
-<canvas id="prevalenceNumberChart"></canvas>
-</div>
-</div>
-<div id="prevalenceRateChartContainer" class="chart-wrapper" style="display: none;">
-<div id="prevalenceRateLegend" class="custom-legend"></div>
-<div class="chart-container">
-<canvas id="prevalenceRateChart"></canvas>
-</div>
-</div>
+    <h2>Depression Prevalence</h2>
+    <div class="button-container">
+        <button class="active" onclick="togglePrevalence('number', event)">Prevalent Cases</button>
+        <button onclick="togglePrevalence('rate', event)">Prevalence Rate</button>
+    </div>
+    <div id="prevalenceNumberChartContainer" class="chart-wrapper">
+        <div id="prevalenceNumberLegend" class="custom-legend"></div>
+        <canvas id="prevalenceNumberChart"></canvas>
+    </div>
+    <div id="prevalenceRateChartContainer" class="chart-wrapper" >
+        <div id="prevalenceRateLegend" class="custom-legend"></div>
+        <canvas id="prevalenceRateChart"></canvas>
+    </div>
 </div>
 
 <div id="chart-container" class="tab">
-<h2>One-year costs of care under Hospital Authority among prevalant patients</h2>
-<div id="cost-legend-container"></div>
-<div class="chart-container">
-<canvas id="myChart"></canvas>
-</div>
-<!-- <div class="button-container">
-<button onclick="toggleData('ae')">Toggle AE Cost</button>
-<button onclick="toggleData('ip')">Toggle IP Cost</button>
-<button onclick="toggleData('op')">Toggle OP Cost</button>
-</div> -->
+    <h2>One-year costs of care under Hospital Authority among prevalant patients</h2>
+    <canvas id="myChart"></canvas>
+    <!-- <div class="button-container">
+        <button onclick="toggleData('ae')">Toggle AE Cost</button>
+        <button onclick="toggleData('ip')">Toggle IP Cost</button>
+        <button onclick="toggleData('op')">Toggle OP Cost</button>
+    </div> -->
 </div>
 
 <div id="cohortData" class="tab">
-<h2>Patients in Unmet Needs with Treatment-Resistant Depression by Year</h2>
-<div class="chart-container">
-<canvas id="cohortChart"></canvas>
-</div>
+    <h2>Patients in Unmet Needs with Treatment-Resistant Depression by Year</h2>
+    <canvas id="cohortChart"></canvas>
 </div>
 
 <div id="kmChartContainer" class="tab">
-<h2>Kaplan-Meier Survival Curves for Incident Cohort (2014 - 2022)</h2>
-<div class="controls">
-<!-- <div class="checkboxes">
-<label><input type="checkbox" value="cohort_2014" checked> Cohort 2014</label>
-<label><input type="checkbox" value="cohort_2015" checked> Cohort 2015</label>
-<label><input type="checkbox" value="cohort_2016" checked> Cohort 2016</label>
-<label><input type="checkbox" value="cohort_2017" checked> Cohort 2017</label>
-<label><input type="checkbox" value="cohort_2018" checked> Cohort 2018</label>
-<label><input type="checkbox" value="cohort_2019" checked> Cohort 2019</label>
-<label><input type="checkbox" value="cohort_2020" checked> Cohort 2020</label>
-<label><input type="checkbox" value="cohort_2021" checked> Cohort 2021</label>
-<label><input type="checkbox" value="cohort_2022" checked> Cohort 2022</label>
-</div>
-<button id="zoomButton">Zoom to 100%-90% Survival</button>
-<button id="resetButton">Reset Zoom</button> -->
-</div>
-<svg id="chart" width="100%" height="300" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet"></svg>
+    <h2>Kaplan-Meier Survival Curves for Incident Cohort (2014 - 2022)</h2>
+    <div class="controls">
+        <!-- <div class="checkboxes">
+            <label><input type="checkbox" value="cohort_2014" checked> Cohort 2014</label>
+            <label><input type="checkbox" value="cohort_2015" checked> Cohort 2015</label>
+            <label><input type="checkbox" value="cohort_2016" checked> Cohort 2016</label>
+            <label><input type="checkbox" value="cohort_2017" checked> Cohort 2017</label>
+            <label><input type="checkbox" value="cohort_2018" checked> Cohort 2018</label>
+            <label><input type="checkbox" value="cohort_2019" checked> Cohort 2019</label>
+            <label><input type="checkbox" value="cohort_2020" checked> Cohort 2020</label>
+            <label><input type="checkbox" value="cohort_2021" checked> Cohort 2021</label>
+            <label><input type="checkbox" value="cohort_2022" checked> Cohort 2022</label>
+        </div>
+        <button id="zoomButton">Zoom to 100%-90% Survival</button>
+        <button id="resetButton">Reset Zoom</button> -->
+    </div>
+    <svg id="chart" width="800" height="400"></svg>
 </div>
 
 <!--<div id="sankeyContainer" class="tab">
-<h2>Treatment Pathway of 2014 - 2022 cohort</h2>
-<iframe src="Sankey Plot.html" title="Embedded HTML"></iframe>
+  <h2>Treatment Pathway of 2014 - 2022 cohort</h2>
+  <iframe src="Sankey Plot.html" title="Embedded HTML"></iframe>
 </div>-->
 
 <script>
@@ -420,7 +231,7 @@ let age_standardized_prev_male = [];
 let age_standardized_prev_female = [];
 
 // Historical incidence data
-let num_inci = [];
+let num_inci = []; 
 let male_incidence = [];
 let female_incidence = [];
 let incidence_rate = [];
@@ -495,2496 +306,2435 @@ let combinedYears = [];
 
 // Variables to track visibility of forecast series - all default to false
 let forecastVisible = {
-total: true,
-male: true,
-female: true
+    total: true,
+    male: true,
+    female: true
 };
 
 // Similar tracker for prevalence forecast visibility
 let prevForecastVisible = {
-total: true,
-male: true,
-female: true
+    total: true,
+    male: true,
+    female: true
 };
 
-// Add responsive chart options with fixed maintainAspectRatio
-function getResponsiveChartOptions(yAxisLabel) {
-    const isMobile = window.innerWidth <= 768;
-    
-    return {
-        responsive: true,
-        maintainAspectRatio: false, // This is crucial to prevent height growth
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                titleFont: {
-                    size: isMobile ? 10 : 12
-                },
-                bodyFont: {
-                    size: isMobile ? 9 : 11
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: yAxisLabel,
-                    font: {
-                        size: isMobile ? 10 : 12
-                    }
-                },
-                ticks: {
-                    font: {
-                        size: isMobile ? 9 : 11
-                    }
-                }
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Year',
-                    font: {
-                        size: isMobile ? 10 : 12
-                    }
-                },
-                ticks: {
-                    font: {
-                        size: isMobile ? 9 : 11
-                    }
-                }
-            }
-        }
-    };
-}
-
 function openTab(evt, tabName) {
-const tabs = document.getElementsByClassName("tab");
-const buttons = document.getElementsByClassName("tab-button");
+    const tabs = document.getElementsByClassName("tab");
+    const buttons = document.getElementsByClassName("tab-button");
 
-for (let i = 0; i < tabs.length; i++) {
-tabs[i].classList.remove('active');
-}
-for (let i = 0; i < buttons.length; i++) {
-buttons[i].classList.remove("active");
-}
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove("active");
+    }
 
-document.getElementById(tabName).classList.add('active');
-evt.currentTarget.classList.add("active");
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add("active");
 }
 
 function toggleChart(type, evt) {
-const incidenceChartContainer = document.getElementById('incidenceChartContainer');
-const rateChartContainer = document.getElementById('rateChartContainer');
+    const incidenceChartContainer = document.getElementById('incidenceChartContainer');
+    const rateChartContainer = document.getElementById('rateChartContainer');
 
-if (type === 'incidence') {
-incidenceChartContainer.style.display = 'block';
-rateChartContainer.style.display = 'none';
-} else {
-incidenceChartContainer.style.display = 'none';
-rateChartContainer.style.display = 'block';
-}
+    if (type === 'incidence') {
+        incidenceChartContainer.style.display = 'block';
+        rateChartContainer.style.display = 'none';
+    } else {
+        incidenceChartContainer.style.display = 'none';
+        rateChartContainer.style.display = 'block';
+    }
 
-// Set the active button
-if (evt) {
-const buttons = document.querySelectorAll('#incidence .button-container button');
-buttons.forEach(button => {
-button.classList.remove('active');
-});
-evt.currentTarget.classList.add('active');
-} else {
-// If called programmatically, activate the first button for incidence
-const buttons = document.querySelectorAll('#incidence .button-container button');
-buttons.forEach((button, index) => {
-if ((type === 'incidence' && index === 0) || (type === 'rate' && index === 1)) {
-button.classList.add('active');
-} else {
-button.classList.remove('active');
-}
-});
-}
+    // Set the active button
+    if (evt) {
+        const buttons = document.querySelectorAll('#incidence .button-container button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+        evt.currentTarget.classList.add('active');
+    } else {
+        // If called programmatically, activate the first button for incidence
+        const buttons = document.querySelectorAll('#incidence .button-container button');
+        buttons.forEach((button, index) => {
+            if ((type === 'incidence' && index === 0) || (type === 'rate' && index === 1)) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
 }
 
 function togglePrevalence(type, evt) {
-const prevalenceNumberChartContainer = document.getElementById('prevalenceNumberChartContainer');
-const prevalenceRateChartContainer = document.getElementById('prevalenceRateChartContainer');
+    const prevalenceNumberChartContainer = document.getElementById('prevalenceNumberChartContainer');
+    const prevalenceRateChartContainer = document.getElementById('prevalenceRateChartContainer');
 
-if (type === 'number') {
-prevalenceNumberChartContainer.style.display = 'block';
-prevalenceRateChartContainer.style.display = 'none';
-} else {
-prevalenceNumberChartContainer.style.display = 'none';
-prevalenceRateChartContainer.style.display = 'block';
-}
+    if (type === 'number') {
+        prevalenceNumberChartContainer.style.display = 'block';
+        prevalenceRateChartContainer.style.display = 'none';
+    } else {
+        prevalenceNumberChartContainer.style.display = 'none';
+        prevalenceRateChartContainer.style.display = 'block';
+    }
 
-// Set the active button
-if (evt) {
-const buttons = document.querySelectorAll('#prevalence .button-container button');
-buttons.forEach(button => {
-button.classList.remove('active');
-});
-evt.currentTarget.classList.add('active');
-} else {
-// If called programmatically, activate the first button for number
-const buttons = document.querySelectorAll('#prevalence .button-container button');
-buttons.forEach((button, index) => {
-if ((type === 'number' && index === 0) || (type === 'rate' && index === 1)) {
-button.classList.add('active');
-} else {
-button.classList.remove('active');
-}
-});
-}
+    // Set the active button
+    if (evt) {
+        const buttons = document.querySelectorAll('#prevalence .button-container button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+        evt.currentTarget.classList.add('active');
+    } else {
+        // If called programmatically, activate the first button for number
+        const buttons = document.querySelectorAll('#prevalence .button-container button');
+        buttons.forEach((button, index) => {
+            if ((type === 'number' && index === 0) || (type === 'rate' && index === 1)) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
 }
 
 function adjustChartAxis(chart) {
-// Check if all forecast series are hidden
-const allForecastHidden = !forecastVisible.total && !forecastVisible.male && !forecastVisible.female;
+    // Check if all forecast series are hidden
+    const allForecastHidden = !forecastVisible.total && !forecastVisible.male && !forecastVisible.female;
 
-if (allForecastHidden) {
-// Set x-axis max to only show historical years (up to 2022)
-chart.options.scales.x.max = years.length - 1;
-} else {
-// Show full range including forecast years
-chart.options.scales.x.max = undefined;
-}
-
-chart.update();
+    if (allForecastHidden) {
+        // Set x-axis max to only show historical years (up to 2022)
+        chart.options.scales.x.max = years.length - 1;
+    } else {
+        // Show full range including forecast years
+        chart.options.scales.x.max = undefined;
+    }
+    
+    chart.update();
 }
 
 function adjustPrevalenceChartAxis(chart) {
-// Check if all forecast series are hidden
-const allForecastHidden = !prevForecastVisible.total && !prevForecastVisible.male && !prevForecastVisible.female;
+    // Check if all forecast series are hidden
+    const allForecastHidden = !prevForecastVisible.total && !prevForecastVisible.male && !prevForecastVisible.female;
 
-if (allForecastHidden) {
-// Set x-axis max to only show historical years (up to 2022)
-chart.options.scales.x.max = years.length - 1;
-} else {
-// Show full range including forecast years
-chart.options.scales.x.max = undefined;
-}
-
-chart.update();
+    if (allForecastHidden) {
+        // Set x-axis max to only show historical years (up to 2022)
+        chart.options.scales.x.max = years.length - 1;
+    } else {
+        // Show full range including forecast years
+        chart.options.scales.x.max = undefined;
+    }
+    
+    chart.update();
 }
 
 // Function to create a custom HTML legend
 function createCustomLegend(chart, legendElementId, isRate = false) {
-const legendElement = document.getElementById(legendElementId);
-if (!legendElement) {
-    console.error(`Legend element with id ${legendElementId} not found`);
-    return;
-}
-
-legendElement.innerHTML = '';
-
-// Create first row for historical data
-const historicalRow = document.createElement('div');
-historicalRow.className = 'legend-row';
-
-// Create second row for forecast data
-const forecastRow = document.createElement('div');
-forecastRow.className = 'legend-row';
-
-// Historical data items
-const historicalItems = [
-{
-label: 'Total ',
-color: '#fb8500',
-datasetIndex: 0,
-dash: false
-},
-{
-label: 'Male ',
-color: '#023047',
-datasetIndex: 1,
-dash: false
-},
-{
-label: 'Female ',
-color: '#8ecae6',
-datasetIndex: 2,
-dash: false
-}
-];
-
-// Forecast data items
-const forecastItems = [
-{
-label: 'Total (Forecast)',
-color: '#fb8500',
-datasetIndex: isRate ? 4 : 4,
-dash: true
-},
-{
-label: 'Male (Forecast)',
-color: '#023047',
-datasetIndex: isRate ? 7 : 7,
-dash: true
-},
-{
-label: 'Female (Forecast)',
-color: '#8ecae6',
-datasetIndex: isRate ? 10 : 10,
-dash: true
-}
-];
-
-// Add historical items to the first row
-historicalItems.forEach(item => {
-const legendItem = document.createElement('div');
-legendItem.className = 'legend-item';
-legendItem.dataset.index = item.datasetIndex;
-
-const meta = chart.getDatasetMeta(item.datasetIndex);
-if (meta.hidden) {
-legendItem.classList.add('hidden');
-}
-
-const colorSpan = document.createElement('span');
-colorSpan.className = 'legend-color';
-colorSpan.style.backgroundColor = item.color;
-if (item.dash) {
-colorSpan.classList.add('legend-dash');
-colorSpan.style.borderTopColor = item.color;
-}
-
-const textSpan = document.createElement('span');
-textSpan.className = 'legend-text';
-textSpan.textContent = item.label;
-
-legendItem.appendChild(colorSpan);
-legendItem.appendChild(textSpan);
-
-// Add click event handler
-legendItem.addEventListener('click', () => {
-const index = parseInt(legendItem.dataset.index);
-const meta = chart.getDatasetMeta(index);
-
-// Toggle visibility
-meta.hidden = !meta.hidden;
-
-// Update class to reflect hidden state
-if (meta.hidden) {
-legendItem.classList.add('hidden');
-} else {
-legendItem.classList.remove('hidden');
-}
-
-// Update chart
-chart.update();
-});
-
-historicalRow.appendChild(legendItem);
-});
-
-// Add forecast items to the second row
-forecastItems.forEach(item => {
-const legendItem = document.createElement('div');
-legendItem.className = 'legend-item';
-// Always add the 'hidden' class initially for forecast items
-const meta = chart.getDatasetMeta(item.datasetIndex);
-if (meta.hidden) {
-legendItem.classList.add('hidden');
-}
-legendItem.dataset.index = item.datasetIndex;
-
-const colorSpan = document.createElement('span');
-colorSpan.className = 'legend-color';
-colorSpan.style.backgroundColor = item.color;
-if (item.dash) {
-colorSpan.classList.add('legend-dash');
-colorSpan.style.borderTopColor = item.color;
-}
-
-const textSpan = document.createElement('span');
-textSpan.className = 'legend-text';
-textSpan.textContent = item.label;
-
-legendItem.appendChild(colorSpan);
-legendItem.appendChild(textSpan);
-
-// Add click event handler for forecast items
-legendItem.addEventListener('click', () => {
-const index = parseInt(legendItem.dataset.index);
-const meta = chart.getDatasetMeta(index);
-
-// Check if the legend item has the 'hidden' class (i.e., it's currently showing as strikethrough)
-const isCurrentlyHidden = legendItem.classList.contains('hidden');
-
-// Update the dataset visibility based on the current visual state
-meta.hidden = !isCurrentlyHidden;
-
-// Update class to reflect the new state
-if (isCurrentlyHidden) {
-// If it was hidden (strikethrough), remove that class to show it
-legendItem.classList.remove('hidden');
-} else {
-// If it was showing, add the hidden class to hide it
-legendItem.classList.add('hidden');
-}
-
-// Track forecast visibility directly based on the new visual state
-const label = chart.data.datasets[index].label;
-
-if (label === 'Total (Forecast)') {
-if (legendElementId.includes('prevalence')) {
-prevForecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-
-// Also toggle prediction intervals to match
-const lowerIndex = isRate ? 3 : 3;
-const upperIndex = isRate ? 5 : 5;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-} else {
-forecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-
-// Also toggle prediction intervals to match
-const lowerIndex = isRate ? 3 : 3;
-const upperIndex = isRate ? 5 : 5;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-}
-} else if (label === 'Male (Forecast)') {
-if (legendElementId.includes('prevalence')) {
-prevForecastVisible.male = isCurrentlyHidden;
-
-// Also toggle prediction intervals
-const lowerIndex = isRate ? 6 : 6;
-const upperIndex = isRate ? 8 : 8;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-} else {
-forecastVisible.male = isCurrentlyHidden;
-
-// Also toggle prediction intervals
-const lowerIndex = isRate ? 6 : 6;
-const upperIndex = isRate ? 8 : 8;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-}
-} else if (label === 'Female (Forecast)') {
-if (legendElementId.includes('prevalence')) {
-prevForecastVisible.female = isCurrentlyHidden;
-
-// Also toggle prediction intervals
-const lowerIndex = isRate ? 9 : 9;
-const upperIndex = isRate ? 11 : 11;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-} else {
-forecastVisible.female = isCurrentlyHidden;
-
-// Also toggle prediction intervals
-const lowerIndex = isRate ? 9 : 9;
-const upperIndex = isRate ? 11 : 11;
-
-chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-}
-}
-
-// Update chart
-chart.update();
-
-// Adjust x-axis if needed
-if (legendElementId.includes('prevalence')) {
-adjustPrevalenceChartAxis(chart);
-} else {
-adjustChartAxis(chart);
-}
-});
-
-forecastRow.appendChild(legendItem);
-});
-
-// Add rows to legend element
-legendElement.appendChild(historicalRow);
-legendElement.appendChild(forecastRow);
+    const legendElement = document.getElementById(legendElementId);
+    legendElement.innerHTML = '';
+    
+    // Create first row for historical data
+    const historicalRow = document.createElement('div');
+    historicalRow.className = 'legend-row';
+    
+    // Create second row for forecast data
+    const forecastRow = document.createElement('div');
+    forecastRow.className = 'legend-row';
+    
+    // Historical data items
+    const historicalItems = [
+        {
+            label: 'Total  ',
+            color: '#fb8500',
+            datasetIndex: 0,
+            dash: false
+        },
+        {
+            label: 'Male  ',
+            color: '#023047',
+            datasetIndex: 1,
+            dash: false
+        },
+        {
+            label: 'Female  ',
+            color: '#8ecae6',
+            datasetIndex: 2,
+            dash: false
+        }
+    ];
+    
+    // Forecast data items
+    const forecastItems = [
+        {
+            label: 'Total (Forecast)',
+            color: '#fb8500',
+            datasetIndex: isRate ? 4 : 4,
+            dash: true
+        },
+        {
+            label: 'Male (Forecast)',
+            color: '#023047',
+            datasetIndex: isRate ? 7 : 7,
+            dash: true
+        },
+        {
+            label: 'Female (Forecast)',
+            color: '#8ecae6',
+            datasetIndex: isRate ? 10 : 10, 
+            dash: true
+        }
+    ];
+    
+    // Add historical items to the first row
+    historicalItems.forEach(item => {
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        legendItem.dataset.index = item.datasetIndex;
+        
+        const meta = chart.getDatasetMeta(item.datasetIndex);
+        if (meta.hidden) {
+            legendItem.classList.add('hidden');
+        }
+        
+        const colorSpan = document.createElement('span');
+        colorSpan.className = 'legend-color';
+        colorSpan.style.backgroundColor = item.color;
+        if (item.dash) {
+            colorSpan.classList.add('legend-dash');
+            colorSpan.style.borderTopColor = item.color;
+        }
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'legend-text';
+        textSpan.textContent = item.label;
+        
+        legendItem.appendChild(colorSpan);
+        legendItem.appendChild(textSpan);
+        
+        // Add click event handler
+        legendItem.addEventListener('click', () => {
+            const index = parseInt(legendItem.dataset.index);
+            const meta = chart.getDatasetMeta(index);
+            
+            // Toggle visibility
+            meta.hidden = !meta.hidden;
+            
+            // Update class to reflect hidden state
+            if (meta.hidden) {
+                legendItem.classList.add('hidden');
+            } else {
+                legendItem.classList.remove('hidden');
+            }
+            
+            // Update chart
+            chart.update();
+        });
+        
+        historicalRow.appendChild(legendItem);
+    });
+    
+    // Add forecast items to the second row
+    forecastItems.forEach(item => {
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        // Always add the 'hidden' class initially for forecast items
+        const meta = chart.getDatasetMeta(item.datasetIndex);
+        if (meta.hidden) {
+            legendItem.classList.add('hidden');
+        }
+        legendItem.dataset.index = item.datasetIndex;
+        
+        const colorSpan = document.createElement('span');
+        colorSpan.className = 'legend-color';
+        colorSpan.style.backgroundColor = item.color;
+        if (item.dash) {
+            colorSpan.classList.add('legend-dash');
+            colorSpan.style.borderTopColor = item.color;
+        }
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'legend-text';
+        textSpan.textContent = item.label;
+        
+        legendItem.appendChild(colorSpan);
+        legendItem.appendChild(textSpan);
+        
+        // Add click event handler for forecast items
+        legendItem.addEventListener('click', () => {
+            const index = parseInt(legendItem.dataset.index);
+            const meta = chart.getDatasetMeta(index);
+            
+            // Check if the legend item has the 'hidden' class (i.e., it's currently showing as strikethrough)
+            const isCurrentlyHidden = legendItem.classList.contains('hidden');
+            
+            // Update the dataset visibility based on the current visual state
+            meta.hidden = !isCurrentlyHidden;
+            
+            // Update class to reflect the new state
+            if (isCurrentlyHidden) {
+                // If it was hidden (strikethrough), remove that class to show it
+                legendItem.classList.remove('hidden');
+            } else {
+                // If it was showing, add the hidden class to hide it
+                legendItem.classList.add('hidden');
+            }
+            
+            // Track forecast visibility directly based on the new visual state
+            const label = chart.data.datasets[index].label;
+            
+            if (label === 'Total (Forecast)') {
+                if (legendElementId.includes('prevalence')) {
+                    prevForecastVisible.total = isCurrentlyHidden; // True if we're making it visible
+                    
+                    // Also toggle prediction intervals to match
+                    const lowerIndex = isRate ? 3 : 3;
+                    const upperIndex = isRate ? 5 : 5;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                } else {
+                    forecastVisible.total = isCurrentlyHidden; // True if we're making it visible
+                    
+                    // Also toggle prediction intervals to match
+                    const lowerIndex = isRate ? 3 : 3;
+                    const upperIndex = isRate ? 5 : 5;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                }
+            } else if (label === 'Male (Forecast)') {
+                if (legendElementId.includes('prevalence')) {
+                    prevForecastVisible.male = isCurrentlyHidden;
+                    
+                    // Also toggle prediction intervals
+                    const lowerIndex = isRate ? 6 : 6;
+                    const upperIndex = isRate ? 8 : 8;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                } else {
+                    forecastVisible.male = isCurrentlyHidden;
+                    
+                    // Also toggle prediction intervals
+                    const lowerIndex = isRate ? 6 : 6;
+                    const upperIndex = isRate ? 8 : 8;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                }
+            } else if (label === 'Female (Forecast)') {
+                if (legendElementId.includes('prevalence')) {
+                    prevForecastVisible.female = isCurrentlyHidden;
+                    
+                    // Also toggle prediction intervals
+                    const lowerIndex = isRate ? 9 : 9;
+                    const upperIndex = isRate ? 11 : 11;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                } else {
+                    forecastVisible.female = isCurrentlyHidden;
+                    
+                    // Also toggle prediction intervals
+                    const lowerIndex = isRate ? 9 : 9;
+                    const upperIndex = isRate ? 11 : 11;
+                    
+                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
+                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
+                }
+            }
+            
+            // Update chart
+            chart.update();
+            
+            // Adjust x-axis if needed
+            if (legendElementId.includes('prevalence')) {
+                adjustPrevalenceChartAxis(chart);
+            } else {
+                adjustChartAxis(chart);
+            }
+        });
+        
+        forecastRow.appendChild(legendItem);
+    });
+    
+    // Add rows to legend element
+    legendElement.appendChild(historicalRow);
+    legendElement.appendChild(forecastRow);
 }
 
 function updateIncidenceCharts() {
-// Get chart contexts
-const ctx1 = document.getElementById('incidenceChart');
-const ctx2 = document.getElementById('rateChart');
-
-if (!ctx1 || !ctx2) {
-    console.error('Canvas elements not found');
-    return;
-}
-
-// Create combined data arrays
-const totalCasesData = [];
-const maleCasesData = [];
-const femaleCasesData = [];
-
-const totalCasesForecastData = [];
-const maleCasesForecastData = [];
-const femaleCasesForecastData = [];
-
-// Prepare data for prediction intervals
-const totalCasesLowerData = [];
-const totalCasesUpperData = [];
-const maleCasesLowerData = [];
-const maleCasesUpperData = [];
-const femaleCasesLowerData = [];
-const femaleCasesUpperData = [];
-
-// Fill historical data arrays
-for (let i = 0; i < years.length; i++) {
-totalCasesData.push(num_inci[i]);
-maleCasesData.push(male_incidence[i]);
-femaleCasesData.push(female_incidence[i]);
-
-// Add null placeholders for forecast in historical period
-if (i < years.length - 1) { // All except last point (2022)
-totalCasesForecastData.push(null);
-maleCasesForecastData.push(null);
-femaleCasesForecastData.push(null);
-
-totalCasesLowerData.push(null);
-totalCasesUpperData.push(null);
-maleCasesLowerData.push(null);
-maleCasesUpperData.push(null);
-femaleCasesLowerData.push(null);
-femaleCasesUpperData.push(null);
-} else { // 2022 point (shared between historical and forecast)
-totalCasesForecastData.push(num_inci_forecast[0]);
-maleCasesForecastData.push(male_incidence_forecast[0]);
-femaleCasesForecastData.push(female_incidence_forecast[0]);
-
-totalCasesLowerData.push(num_inci_lower[0]);
-totalCasesUpperData.push(num_inci_upper[0]);
-maleCasesLowerData.push(male_incidence_lower[0]);
-maleCasesUpperData.push(male_incidence_upper[0]);
-femaleCasesLowerData.push(female_incidence_lower[0]);
-femaleCasesUpperData.push(female_incidence_upper[0]);
-}
-}
-
-// Add forecast data for 2023-2032
-for (let i = 1; i < forecastYears.length; i++) { // Skip first (2022)
-// Add null placeholders for historical in forecast period
-totalCasesData.push(null);
-maleCasesData.push(null);
-femaleCasesData.push(null);
-
-// Add forecast data points
-totalCasesForecastData.push(num_inci_forecast[i]);
-maleCasesForecastData.push(male_incidence_forecast[i]);
-femaleCasesForecastData.push(female_incidence_forecast[i]);
-
-// Add prediction intervals
-totalCasesLowerData.push(num_inci_lower[i]);
-totalCasesUpperData.push(num_inci_upper[i]);
-maleCasesLowerData.push(male_incidence_lower[i]);
-maleCasesUpperData.push(male_incidence_upper[i]);
-femaleCasesLowerData.push(female_incidence_lower[i]);
-femaleCasesUpperData.push(female_incidence_upper[i]);
-}
-
-// Create combined years array (2014-2032)
-const allYears = [...years]; // Start with 2014-2022
-
-// Add 2023-2032 (excluding 2022 which is already included)
-for (let i = 1; i < forecastYears.length; i++) {
-allYears.push(forecastYears[i]);
-}
-
-// Clean up any existing charts
-if (incidenceChartObj) {
-incidenceChartObj.destroy();
-}
-
-// Create new incidence chart with responsive options
-incidenceChartObj = new Chart(ctx1.getContext('2d'), {
-type: 'line',
-data: {
-labels: allYears,
-datasets: [
-// Total Cases - Historical
-{
-label: 'Total ',
-data: totalCasesData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#fb8500'
-},
-// Male Cases - Historical
-{
-label: 'Male ',
-data: maleCasesData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#023047'
-},
-// Female Cases - Historical
-{
-label: 'Female ',
-data: femaleCasesData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6'
-},
-// Total Cases - Lower Confidence Interval
-{
-label: 'Total Lower PI',
-data: totalCasesLowerData,
-borderColor: 'rgba(255, 0, 0, 0.2)',
-backgroundColor: 'rgba(255, 0, 0, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-////hidden: true // Start hidden
-},
-// Total Cases - Forecast
-{
-label: 'Total (Forecast)',
-data: totalCasesForecastData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#fb8500',
-//hidden: true // Start hidden
-},
-// Total Cases - Upper Confidence Interval
-{
-label: 'Total Upper PI',
-data: totalCasesUpperData,
-borderColor: 'rgba(255, 0, 0, 0)',
-backgroundColor: 'rgba(255, 0, 0, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Cases - Lower Confidence Interval
-{
-label: 'Male Lower PI',
-data: maleCasesLowerData,
-borderColor: 'rgba(0, 0, 255, 0.2)',
-backgroundColor: 'rgba(0, 0, 255, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Cases - Forecast
-{
-label: 'Male (Forecast)',
-data: maleCasesForecastData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#023047',
-//hidden: true // Start hidden
-},
-// Male Cases - Upper Confidence Interval
-{
-label: 'Male Upper PI',
-data: maleCasesUpperData,
-borderColor: 'rgba(0, 0, 255, 0)',
-backgroundColor: 'rgba(0, 0, 255, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Cases - Lower Confidence Interval
-{
-label: 'Female Lower PI',
-data: femaleCasesLowerData,
-borderColor: 'rgba(255, 105, 180, 0.2)',
-backgroundColor: 'rgba(255, 105, 180, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Cases - Forecast
-{
-label: 'Female (Forecast)',
-data: femaleCasesForecastData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6',
-//hidden: true // Start hidden
-},
-// Female Cases - Upper Confidence Interval
-{
-label: 'Female Upper PI',
-data: femaleCasesUpperData,
-borderColor: 'rgba(255, 105, 180, 0)',
-backgroundColor: 'rgba(255, 105, 180, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-}
-]
-},
-options: {
-...getResponsiveChartOptions('Number of incident cases'),
-plugins: {
-...getResponsiveChartOptions('Number of incident cases').plugins,
-tooltip: {
-...getResponsiveChartOptions('Number of incident cases').plugins.tooltip,
-callbacks: {
-label: function(context) {
-const label = context.dataset.label || '';
-if (label.includes('PI')) return null;
-
-const value = context.parsed.y || 0;
-
-// For forecast points, add prediction interval to tooltip
-if (label.includes('Forecast') && value) {
-let lowerValue, upperValue;
-
-if (label.includes('Total')) {
-// Find the indices for the prediction intervals
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Male')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Female')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-}
-
-if (lowerValue && upperValue) {
-return [
-`${label}: ${Math.round(value)}`,
-`95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-];
-}
-}
-
-return `${label}: ${Math.round(value)}`;
-}
-}
-}
-}
-}
-});
-
-// Create custom legend for incidence chart
-createCustomLegend(incidenceChartObj, 'incidenceLegend', false);
-
-// Prepare data for rate chart
-const totalRateData = [];
-const maleRateData = [];
-const femaleRateData = [];
-
-const totalRateForecastData = [];
-const maleRateForecastData = [];
-const femaleRateForecastData = [];
-
-// Prepare prediction intervals for rate chart
-const totalRateLowerData = [];
-const totalRateUpperData = [];
-const maleRateLowerData = [];
-const maleRateUpperData = [];
-const femaleRateLowerData = [];
-const femaleRateUpperData = [];
-
-// Fill historical data arrays
-for (let i = 0; i < years.length; i++) {
-totalRateData.push(incidence_rate[i]);
-maleRateData.push(male_incidence_rate[i]);
-femaleRateData.push(female_incidence_rate[i]);
-
-// Add null placeholders for forecast in historical period
-if (i < years.length - 1) { // All except last point (2022)
-totalRateForecastData.push(null);
-maleRateForecastData.push(null);
-femaleRateForecastData.push(null);
-
-totalRateLowerData.push(null);
-totalRateUpperData.push(null);
-maleRateLowerData.push(null);
-maleRateUpperData.push(null);
-femaleRateLowerData.push(null);
-femaleRateUpperData.push(null);
-} else { // 2022 point (shared between historical and forecast)
-totalRateForecastData.push(incidence_rate_forecast[0]);
-maleRateForecastData.push(male_incidence_rate_forecast[0]);
-femaleRateForecastData.push(female_incidence_rate_forecast[0]);
-
-totalRateLowerData.push(incidence_rate_lower[0]);
-totalRateUpperData.push(incidence_rate_upper[0]);
-maleRateLowerData.push(male_incidence_rate_lower[0]);
-maleRateUpperData.push(male_incidence_rate_upper[0]);
-femaleRateLowerData.push(female_incidence_rate_lower[0]);
-femaleRateUpperData.push(female_incidence_rate_upper[0]);
-}
-}
-
-// Add forecast data for 2023-2032
-for (let i = 1; i < forecastYears.length; i++) { // Skip first (2022)
-// Add null placeholders for historical in forecast period
-totalRateData.push(null);
-maleRateData.push(null);
-femaleRateData.push(null);
-
-// Add forecast data points
-totalRateForecastData.push(incidence_rate_forecast[i]);
-maleRateForecastData.push(male_incidence_rate_forecast[i]);
-femaleRateForecastData.push(female_incidence_rate_forecast[i]);
-
-// Add prediction intervals
-totalRateLowerData.push(incidence_rate_lower[i]);
-totalRateUpperData.push(incidence_rate_upper[i]);
-maleRateLowerData.push(male_incidence_rate_lower[i]);
-maleRateUpperData.push(male_incidence_rate_upper[i]);
-femaleRateLowerData.push(female_incidence_rate_lower[i]);
-femaleRateUpperData.push(female_incidence_rate_upper[i]);
-}
-
-// Clean up any existing rate chart
-if (rateChartObj) {
-rateChartObj.destroy();
-}
-
-// Create new rate chart with responsive options
-rateChartObj = new Chart(ctx2.getContext('2d'), {
-type: 'line',
-data: {
-labels: allYears,
-datasets: [
-// Total Rate - Historical
-{
-label: 'Total ',
-data: totalRateData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#fb8500'
-},
-// Male Rate - Historical
-{
-label: 'Male ',
-data: maleRateData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#023047'
-},
-// Female Rate - Historical
-{
-label: 'Female ',
-data: femaleRateData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6'
-},
-// Total Rate - Lower Confidence Interval
-{
-label: 'Total Lower PI',
-data: totalRateLowerData,
-borderColor: 'rgba(255, 0, 0, 0.2)',
-backgroundColor: 'rgba(255, 0, 0, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Total Rate - Forecast
-{
-label: 'Total (Forecast)',
-data: totalRateForecastData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#fb8500',
-//hidden: true // Start hidden
-},
-// Total Rate - Upper Confidence Interval
-{
-label: 'Total Upper PI',
-data: totalRateUpperData,
-borderColor: 'rgba(255, 0, 0, 0)',
-backgroundColor: 'rgba(255, 0, 0, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Rate - Lower Confidence Interval
-{
-label: 'Male Lower PI',
-data: maleRateLowerData,
-borderColor: 'rgba(0, 0, 255, 0.2)',
-backgroundColor: 'rgba(0, 0, 255, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Rate - Forecast
-{
-label: 'Male (Forecast)',
-data: maleRateForecastData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#023047',
-//hidden: true // Start hidden
-},
-// Male Rate - Upper Confidence Interval
-{
-label: 'Male Upper PI',
-data: maleRateUpperData,
-borderColor: 'rgba(0, 0, 255, 0)',
-backgroundColor: 'rgba(0, 0, 255, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Rate - Lower Confidence Interval
-{
-label: 'Female Lower PI',
-data: femaleRateLowerData,
-borderColor: 'rgba(255, 105, 180, 0.2)',
-backgroundColor: 'rgba(255, 105, 180, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Rate - Forecast
-{
-label: 'Female (Forecast)',
-data: femaleRateForecastData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6',
-//hidden: true // Start hidden
-},
-// Female Rate - Upper Confidence Interval
-{
-label: 'Female Upper PI',
-data: femaleRateUpperData,
-borderColor: 'rgba(255, 105, 180, 0)',
-backgroundColor: 'rgba(255, 105, 180, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-}
-]
-},
-options: {
-...getResponsiveChartOptions('Age-standardized incidence rate (per 10,000 persons)'),
-plugins: {
-...getResponsiveChartOptions('Age-standardized incidence rate (per 10,000 persons)').plugins,
-tooltip: {
-...getResponsiveChartOptions('Age-standardized incidence rate (per 10,000 persons)').plugins.tooltip,
-callbacks: {
-label: function(context) {
-const label = context.dataset.label || '';
-if (label.includes('PI')) return null;
-
-const value = context.parsed.y || 0;
-
-// For forecast points, add prediction interval to tooltip
-if (label.includes('Forecast') && value) {
-let lowerValue, upperValue;
-
-if (label.includes('Total')) {
-// Find the indices for the prediction intervals
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Male')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Female')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-}
-
-if (lowerValue && upperValue) {
-return [
-`${label}: ${value.toFixed(2)}`,
-`95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-];
-}
-}
-
-return `${label}: ${value.toFixed(2)}`;
-}
-}
-}
-}
-}
-});
-
-// Create custom legend for rate chart
-createCustomLegend(rateChartObj, 'rateLegend', true);
-
-// Show initial chart
-toggleChart('incidence', null);
+    // Get chart contexts
+    const ctx1 = document.getElementById('incidenceChart').getContext('2d');
+    const ctx2 = document.getElementById('rateChart').getContext('2d');
+    
+    // Create combined data arrays
+    const totalCasesData = [];
+    const maleCasesData = [];
+    const femaleCasesData = [];
+    
+    const totalCasesForecastData = [];
+    const maleCasesForecastData = []; 
+    const femaleCasesForecastData = [];
+    
+    // Prepare data for prediction intervals
+    const totalCasesLowerData = [];
+    const totalCasesUpperData = [];
+    const maleCasesLowerData = [];
+    const maleCasesUpperData = [];
+    const femaleCasesLowerData = [];
+    const femaleCasesUpperData = [];
+    
+    // Fill historical data arrays
+    for (let i = 0; i < years.length; i++) {
+        totalCasesData.push(num_inci[i]);
+        maleCasesData.push(male_incidence[i]);
+        femaleCasesData.push(female_incidence[i]);
+        
+        // Add null placeholders for forecast in historical period
+        if (i < years.length - 1) { // All except last point (2022)
+            totalCasesForecastData.push(null);
+            maleCasesForecastData.push(null);
+            femaleCasesForecastData.push(null);
+            
+            totalCasesLowerData.push(null);
+            totalCasesUpperData.push(null);
+            maleCasesLowerData.push(null);
+            maleCasesUpperData.push(null);
+            femaleCasesLowerData.push(null);
+            femaleCasesUpperData.push(null);
+        } else { // 2022 point (shared between historical and forecast)
+            totalCasesForecastData.push(num_inci_forecast[0]);
+            maleCasesForecastData.push(male_incidence_forecast[0]);
+            femaleCasesForecastData.push(female_incidence_forecast[0]);
+            
+            totalCasesLowerData.push(num_inci_lower[0]);
+            totalCasesUpperData.push(num_inci_upper[0]);
+            maleCasesLowerData.push(male_incidence_lower[0]);
+            maleCasesUpperData.push(male_incidence_upper[0]);
+            femaleCasesLowerData.push(female_incidence_lower[0]);
+            femaleCasesUpperData.push(female_incidence_upper[0]);
+        }
+    }
+    
+    // Add forecast data for 2023-2032
+    for (let i = 1; i < forecastYears.length; i++) { // Skip first (2022)
+        // Add null placeholders for historical in forecast period
+        totalCasesData.push(null);
+        maleCasesData.push(null);
+        femaleCasesData.push(null);
+        
+        // Add forecast data points
+        totalCasesForecastData.push(num_inci_forecast[i]);
+        maleCasesForecastData.push(male_incidence_forecast[i]);
+        femaleCasesForecastData.push(female_incidence_forecast[i]);
+        
+        // Add prediction intervals
+        totalCasesLowerData.push(num_inci_lower[i]);
+        totalCasesUpperData.push(num_inci_upper[i]);
+        maleCasesLowerData.push(male_incidence_lower[i]);
+        maleCasesUpperData.push(male_incidence_upper[i]);
+        femaleCasesLowerData.push(female_incidence_lower[i]);
+        femaleCasesUpperData.push(female_incidence_upper[i]);
+    }
+    
+    // Create combined years array (2014-2032)
+    const allYears = [...years]; // Start with 2014-2022
+    
+    // Add 2023-2032 (excluding 2022 which is already included)
+    for (let i = 1; i < forecastYears.length; i++) {
+        allYears.push(forecastYears[i]);
+    }
+    
+    // Clean up any existing charts
+    if (incidenceChartObj) {
+        incidenceChartObj.destroy();
+    }
+    
+    // Create new incidence chart
+    incidenceChartObj = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: allYears,
+            datasets: [
+                // Total Cases - Historical
+                {
+                    label: 'Total  ',
+                    data: totalCasesData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500'
+                },
+                // Male Cases - Historical
+                {
+                    label: 'Male  ',
+                    data: maleCasesData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047'
+                },
+                // Female Cases - Historical
+                {
+                    label: 'Female  ',
+                    data: femaleCasesData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6'
+                },
+                // Total Cases - Lower Confidence Interval
+                {
+                    label: 'Total Lower PI',
+                    data: totalCasesLowerData,
+                    borderColor: 'rgba(255, 0, 0, 0.2)',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    ////hidden: true // Start hidden
+                },
+                // Total Cases - Forecast
+                {
+                    label: 'Total (Forecast)',
+                    data: totalCasesForecastData,
+                    borderColor: '#fb8500', 
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500',
+                    //hidden: true // Start hidden
+                },
+                // Total Cases - Upper Confidence Interval
+                {
+                    label: 'Total Upper PI',
+                    data: totalCasesUpperData,
+                    borderColor: 'rgba(255, 0, 0, 0)',
+                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Lower Confidence Interval
+                {
+                    label: 'Male Lower PI',
+                    data: maleCasesLowerData,
+                    borderColor: 'rgba(0, 0, 255, 0.2)',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Forecast
+                {
+                    label: 'Male (Forecast)',
+                    data: maleCasesForecastData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047',
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Upper Confidence Interval
+                {
+                    label: 'Male Upper PI',
+                    data: maleCasesUpperData,
+                    borderColor: 'rgba(0, 0, 255, 0)',
+                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Lower Confidence Interval
+                {
+                    label: 'Female Lower PI',
+                    data: femaleCasesLowerData,
+                    borderColor: 'rgba(255, 105, 180, 0.2)',
+                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Forecast
+                {
+                    label: 'Female (Forecast)',
+                    data: femaleCasesForecastData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6',
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Upper Confidence Interval
+                {
+                    label: 'Female Upper PI',
+                    data: femaleCasesUpperData,
+                    borderColor: 'rgba(255, 105, 180, 0)',
+                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${Math.round(value)}`,
+                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${Math.round(value)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of incident cases'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
+    });
+    
+    // Create custom legend for incidence chart
+    createCustomLegend(incidenceChartObj, 'incidenceLegend', false);
+    
+    // Prepare data for rate chart
+    const totalRateData = [];
+    const maleRateData = [];
+    const femaleRateData = [];
+    
+    const totalRateForecastData = [];
+    const maleRateForecastData = [];
+    const femaleRateForecastData = [];
+    
+    // Prepare prediction intervals for rate chart
+    const totalRateLowerData = [];
+    const totalRateUpperData = [];
+    const maleRateLowerData = [];
+    const maleRateUpperData = [];
+    const femaleRateLowerData = [];
+    const femaleRateUpperData = [];
+    
+    // Fill historical data arrays
+    for (let i = 0; i < years.length; i++) {
+        totalRateData.push(incidence_rate[i]);
+        maleRateData.push(male_incidence_rate[i]);
+        femaleRateData.push(female_incidence_rate[i]);
+        
+        // Add null placeholders for forecast in historical period
+        if (i < years.length - 1) { // All except last point (2022)
+            totalRateForecastData.push(null);
+            maleRateForecastData.push(null);
+            femaleRateForecastData.push(null);
+            
+            totalRateLowerData.push(null);
+            totalRateUpperData.push(null);
+            maleRateLowerData.push(null);
+            maleRateUpperData.push(null);
+            femaleRateLowerData.push(null);
+            femaleRateUpperData.push(null);
+        } else { // 2022 point (shared between historical and forecast)
+            totalRateForecastData.push(incidence_rate_forecast[0]);
+            maleRateForecastData.push(male_incidence_rate_forecast[0]);
+            femaleRateForecastData.push(female_incidence_rate_forecast[0]);
+            
+            totalRateLowerData.push(incidence_rate_lower[0]);
+            totalRateUpperData.push(incidence_rate_upper[0]);
+            maleRateLowerData.push(male_incidence_rate_lower[0]);
+            maleRateUpperData.push(male_incidence_rate_upper[0]);
+            femaleRateLowerData.push(female_incidence_rate_lower[0]);
+            femaleRateUpperData.push(female_incidence_rate_upper[0]);
+        }
+    }
+    
+    // Add forecast data for 2023-2032
+    for (let i = 1; i < forecastYears.length; i++) { // Skip first (2022)
+        // Add null placeholders for historical in forecast period
+        totalRateData.push(null);
+        maleRateData.push(null);
+        femaleRateData.push(null);
+        
+        // Add forecast data points
+        totalRateForecastData.push(incidence_rate_forecast[i]);
+        maleRateForecastData.push(male_incidence_rate_forecast[i]);
+        femaleRateForecastData.push(female_incidence_rate_forecast[i]);
+        
+        // Add prediction intervals
+        totalRateLowerData.push(incidence_rate_lower[i]);
+        totalRateUpperData.push(incidence_rate_upper[i]);
+        maleRateLowerData.push(male_incidence_rate_lower[i]);
+        maleRateUpperData.push(male_incidence_rate_upper[i]);
+        femaleRateLowerData.push(female_incidence_rate_lower[i]);
+        femaleRateUpperData.push(female_incidence_rate_upper[i]);
+    }
+    
+    // Clean up any existing rate chart
+    if (rateChartObj) {
+        rateChartObj.destroy();
+    }
+    
+    // Create new rate chart
+    rateChartObj = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: allYears,
+            datasets: [
+                // Total Rate - Historical
+                {
+                    label: 'Total  ',
+                    data: totalRateData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500'
+                },
+                // Male Rate - Historical
+                {
+                    label: 'Male  ',
+                    data: maleRateData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047'
+                },
+                // Female Rate - Historical
+                {
+                    label: 'Female  ',
+                    data: femaleRateData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6'
+                },
+                // Total Rate - Lower Confidence Interval
+                {
+                    label: 'Total Lower PI',
+                    data: totalRateLowerData,
+                    borderColor: 'rgba(255, 0, 0, 0.2)',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Total Rate - Forecast
+                {
+                    label: 'Total (Forecast)',
+                    data: totalRateForecastData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500',
+                    //hidden: true // Start hidden
+                },
+                // Total Rate - Upper Confidence Interval
+                {
+                    label: 'Total Upper PI',
+                    data: totalRateUpperData,
+                    borderColor: 'rgba(255, 0, 0, 0)',
+                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Lower Confidence Interval
+                {
+                    label: 'Male Lower PI',
+                    data: maleRateLowerData,
+                    borderColor: 'rgba(0, 0, 255, 0.2)',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Forecast
+                {
+                    label: 'Male (Forecast)',
+                    data: maleRateForecastData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047',
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Upper Confidence Interval
+                {
+                    label: 'Male Upper PI',
+                    data: maleRateUpperData,
+                    borderColor: 'rgba(0, 0, 255, 0)',
+                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Lower Confidence Interval
+                {
+                    label: 'Female Lower PI',
+                    data: femaleRateLowerData,
+                    borderColor: 'rgba(255, 105, 180, 0.2)',
+                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Forecast
+                {
+                    label: 'Female (Forecast)',
+                    data: femaleRateForecastData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6',
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Upper Confidence Interval
+                {
+                    label: 'Female Upper PI',
+                    data: femaleRateUpperData,
+                    borderColor: 'rgba(255, 105, 180, 0)',
+                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${value.toFixed(2)}`,
+                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${value.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Age-standardized prevalence rate (per 10,000 persons)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
+    });
+    
+    // Create custom legend for rate chart
+    createCustomLegend(rateChartObj, 'rateLegend', true);
+    
+    // Show initial chart
+    toggleChart('incidence', null);
 }
 
 // Function to update prevalence charts with forecast data
 function updatePrevalenceCharts() {
-// Get chart contexts
-const ctxNumber = document.getElementById('prevalenceNumberChart');
-const ctxRate = document.getElementById('prevalenceRateChart');
-
-if (!ctxNumber || !ctxRate) {
-    console.error('Prevalence canvas elements not found');
-    return;
-}
-
-// Create combined data arrays for prevalence number chart
-const totalPrevData = [];
-const malePrevData = [];
-const femalePrevData = [];
-
-const totalPrevForecastData = [];
-const malePrevForecastData = [];
-const femalePrevForecastData = [];
-
-// Prepare data for prediction intervals
-const totalPrevLowerData = [];
-const totalPrevUpperData = [];
-const malePrevLowerData = [];
-const malePrevUpperData = [];
-const femalePrevLowerData = [];
-const femalePrevUpperData = [];
-
-// Fill historical data arrays
-for (let i = 0; i < years.length; i++) {
-totalPrevData.push(num_unique_prev[i]);
-malePrevData.push(num_male_patient_prev[i]);
-femalePrevData.push(num_female_patient_prev[i]);
-
-// Add null placeholders for forecast in historical period
-if (i < years.length - 1) { // All except last point (2022)
-totalPrevForecastData.push(null);
-malePrevForecastData.push(null);
-femalePrevForecastData.push(null);
-
-totalPrevLowerData.push(null);
-totalPrevUpperData.push(null);
-malePrevLowerData.push(null);
-malePrevUpperData.push(null);
-femalePrevLowerData.push(null);
-femalePrevUpperData.push(null);
-} else { // 2022 point (shared between historical and forecast)
-totalPrevForecastData.push(totalPrevForecast[0]);
-malePrevForecastData.push(malePrevForecast[0]);
-femalePrevForecastData.push(femalePrevForecast[0]);
-
-totalPrevLowerData.push(totalPrevLower[0]);
-totalPrevUpperData.push(totalPrevUpper[0]);
-malePrevLowerData.push(malePrevLower[0]);
-malePrevUpperData.push(malePrevUpper[0]);
-femalePrevLowerData.push(femalePrevLower[0]);
-femalePrevUpperData.push(femalePrevUpper[0]);
-}
-}
-
-// Add forecast data for 2023-2032
-for (let i = 1; i < prevForecastYears.length; i++) { // Skip first (2022)
-// Add null placeholders for historical in forecast period
-totalPrevData.push(null);
-malePrevData.push(null);
-femalePrevData.push(null);
-
-// Add forecast data points
-totalPrevForecastData.push(totalPrevForecast[i]);
-malePrevForecastData.push(malePrevForecast[i]);
-femalePrevForecastData.push(femalePrevForecast[i]);
-
-// Add prediction intervals
-totalPrevLowerData.push(totalPrevLower[i]);
-totalPrevUpperData.push(totalPrevUpper[i]);
-malePrevLowerData.push(malePrevLower[i]);
-malePrevUpperData.push(malePrevUpper[i]);
-femalePrevLowerData.push(femalePrevLower[i]);
-femalePrevUpperData.push(femalePrevUpper[i]);
-}
-
-// Create combined years array (2014-2032)
-const allYears = [...years]; // Start with 2014-2022
-
-// Add 2023-2032 (excluding 2022 which is already included)
-for (let i = 1; i < prevForecastYears.length; i++) {
-allYears.push(prevForecastYears[i]);
-}
-
-// Clean up any existing charts
-if (prevalenceNumberChart) {
-prevalenceNumberChart.destroy();
-}
-
-// Create new prevalence number chart with responsive options
-prevalenceNumberChart = new Chart(ctxNumber.getContext('2d'), {
-type: 'line',
-data: {
-labels: allYears,
-datasets: [
-// Total Cases - Historical
-{
-label: 'Total ',
-data: totalPrevData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#fb8500'
-},
-// Male Cases - Historical
-{
-label: 'Male ',
-data: malePrevData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#023047'
-},
-// Female Cases - Historical
-{
-label: 'Female ',
-data: femalePrevData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6'
-},
-// Total Cases - Lower Confidence Interval
-{
-label: 'Total Lower PI',
-data: totalPrevLowerData,
-borderColor: 'rgba(255, 0, 0, 0.2)',
-backgroundColor: 'rgba(255, 0, 0, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Total Cases - Forecast
-{
-label: 'Total (Forecast)',
-data: totalPrevForecastData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#fb8500',
-//hidden: true // Start hidden
-},
-// Total Cases - Upper Confidence Interval
-{
-label: 'Total Upper PI',
-data: totalPrevUpperData,
-borderColor: 'rgba(255, 0, 0, 0)',
-backgroundColor: 'rgba(255, 0, 0, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Cases - Lower Confidence Interval
-{
-label: 'Male Lower PI',
-data: malePrevLowerData,
-borderColor: 'rgba(0, 0, 255, 0.2)',
-backgroundColor: 'rgba(0, 0, 255, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Cases - Forecast
-{
-label: 'Male (Forecast)',
-data: malePrevForecastData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#023047',
-//hidden: true // Start hidden
-},
-// Male Cases - Upper Confidence Interval
-{
-label: 'Male Upper PI',
-data: malePrevUpperData,
-borderColor: 'rgba(0, 0, 255, 0)',
-backgroundColor: 'rgba(0, 0, 255, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Cases - Lower Confidence Interval
-{
-label: 'Female Lower PI',
-data: femalePrevLowerData,
-borderColor: 'rgba(255, 105, 180, 0.2)',
-backgroundColor: 'rgba(255, 105, 180, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Cases - Forecast
-{
-label: 'Female (Forecast)',
-data: femalePrevForecastData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6',
-//hidden: true // Start hidden
-},
-// Female Cases - Upper Confidence Interval
-{
-label: 'Female Upper PI',
-data: femalePrevUpperData,
-borderColor: 'rgba(255, 105, 180, 0)',
-backgroundColor: 'rgba(255, 105, 180, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-}
-]
-},
-options: {
-...getResponsiveChartOptions('Number of prevalent cases'),
-plugins: {
-...getResponsiveChartOptions('Number of prevalent cases').plugins,
-tooltip: {
-...getResponsiveChartOptions('Number of prevalent cases').plugins.tooltip,
-callbacks: {
-label: function(context) {
-const label = context.dataset.label || '';
-if (label.includes('PI')) return null;
-
-const value = context.parsed.y || 0;
-
-// For forecast points, add prediction interval to tooltip
-if (label.includes('Forecast') && value) {
-let lowerValue, upperValue;
-
-if (label.includes('Total')) {
-// Find the indices for the prediction intervals
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Male')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Female')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-}
-
-if (lowerValue && upperValue) {
-return [
-`${label}: ${Math.round(value)}`,
-`95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-];
-}
-}
-
-return `${label}: ${Math.round(value)}`;
-}
-}
-}
-}
-}
-});
-
-// Create custom legend for prevalence number chart
-createCustomLegend(prevalenceNumberChart, 'prevalenceNumberLegend', false);
-
-// Prepare data for prevalence rate chart
-const totalRateData = [];
-const maleRateData = [];
-const femaleRateData = [];
-
-const totalRateForecastData = [];
-const maleRateForecastData = [];
-const femaleRateForecastData = [];
-
-// Prepare prediction intervals for rate chart
-const totalRateLowerData = [];
-const totalRateUpperData = [];
-const maleRateLowerData = [];
-const maleRateUpperData = [];
-const femaleRateLowerData = [];
-const femaleRateUpperData = [];
-
-// Fill historical data arrays
-for (let i = 0; i < years.length; i++) {
-totalRateData.push(Age_Standardized_Prevalence[i]);
-maleRateData.push(age_standardized_prev_male[i]);
-femaleRateData.push(age_standardized_prev_female[i]);
-
-// Add null placeholders for forecast in historical period
-if (i < years.length - 1) { // All except last point (2022)
-totalRateForecastData.push(null);
-maleRateForecastData.push(null);
-femaleRateForecastData.push(null);
-
-totalRateLowerData.push(null);
-totalRateUpperData.push(null);
-maleRateLowerData.push(null);
-maleRateUpperData.push(null);
-femaleRateLowerData.push(null);
-femaleRateUpperData.push(null);
-} else { // 2022 point (shared between historical and forecast)
-totalRateForecastData.push(totalPrevRateForecast[0]);
-maleRateForecastData.push(malePrevRateForecast[0]);
-femaleRateForecastData.push(femalePrevRateForecast[0]);
-
-totalRateLowerData.push(totalPrevRateLower[0]);
-totalRateUpperData.push(totalPrevRateUpper[0]);
-maleRateLowerData.push(malePrevRateLower[0]);
-maleRateUpperData.push(malePrevRateUpper[0]);
-femaleRateLowerData.push(femalePrevRateLower[0]);
-femaleRateUpperData.push(femalePrevRateUpper[0]);
-}
-}
-
-// Add forecast data for 2023-2032
-for (let i = 1; i < prevForecastYears.length; i++) { // Skip first (2022)
-// Add null placeholders for historical in forecast period
-totalRateData.push(null);
-maleRateData.push(null);
-femaleRateData.push(null);
-
-// Add forecast data points
-totalRateForecastData.push(totalPrevRateForecast[i]);
-maleRateForecastData.push(malePrevRateForecast[i]);
-femaleRateForecastData.push(femalePrevRateForecast[i]);
-
-// Add prediction intervals
-totalRateLowerData.push(totalPrevRateLower[i]);
-totalRateUpperData.push(totalPrevRateUpper[i]);
-maleRateLowerData.push(malePrevRateLower[i]);
-maleRateUpperData.push(malePrevRateUpper[i]);
-femaleRateLowerData.push(femalePrevRateLower[i]);
-femaleRateUpperData.push(femalePrevRateUpper[i]);
-}
-
-// Clean up any existing rate chart
-if (prevalenceRateChart) {
-prevalenceRateChart.destroy();
-}
-
-// Create new prevalence rate chart with responsive options
-prevalenceRateChart = new Chart(ctxRate.getContext('2d'), {
-type: 'line',
-data: {
-labels: allYears,
-datasets: [
-// Total Rate - Historical
-{
-label: 'Total ',
-data: totalRateData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#fb8500'
-},
-// Male Rate - Historical
-{
-label: 'Male ',
-data: maleRateData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#023047'
-},
-// Female Rate - Historical
-{
-label: 'Female ',
-data: femaleRateData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6'
-},
-// Total Rate - Lower Confidence Interval
-{
-label: 'Total Lower PI',
-data: totalRateLowerData,
-borderColor: 'rgba(255, 0, 0, 0.2)',
-backgroundColor: 'rgba(255, 0, 0, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Total Rate - Forecast
-{
-label: 'Total (Forecast)',
-data: totalRateForecastData,
-borderColor: '#fb8500',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#fb8500',
-//hidden: true // Start hidden
-},
-// Total Rate - Upper Confidence Interval
-{
-label: 'Total Upper PI',
-data: totalRateUpperData,
-borderColor: 'rgba(255, 0, 0, 0)',
-backgroundColor: 'rgba(255, 0, 0, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Rate - Lower Confidence Interval
-{
-label: 'Male Lower PI',
-data: maleRateLowerData,
-borderColor: 'rgba(0, 0, 255, 0.2)',
-backgroundColor: 'rgba(0, 0, 255, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Male Rate - Forecast
-{
-label: 'Male (Forecast)',
-data: maleRateForecastData,
-borderColor: '#023047',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#023047',
-//hidden: true // Start hidden
-},
-// Male Rate - Upper Confidence Interval
-{
-label: 'Male Upper PI',
-data: maleRateUpperData,
-borderColor: 'rgba(0, 0, 255, 0)',
-backgroundColor: 'rgba(0, 0, 255, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Rate - Lower Confidence Interval
-{
-label: 'Female Lower PI',
-data: femaleRateLowerData,
-borderColor: 'rgba(255, 105, 180, 0.2)',
-backgroundColor: 'rgba(255, 105, 180, 0.2)',
-fill: '+2', // Fill to dataset with index +2 (the upper interval)
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-},
-// Female Rate - Forecast
-{
-label: 'Female (Forecast)',
-data: femaleRateForecastData,
-borderColor: '#8ecae6',
-fill: false,
-tension: 0.1,
-borderDash: [5, 5],
-pointRadius: 3,
-pointBackgroundColor: '#8ecae6',
-//hidden: true // Start hidden
-},
-// Female Rate - Upper Confidence Interval
-{
-label: 'Female Upper PI',
-data: femaleRateUpperData,
-borderColor: 'rgba(255, 105, 180, 0)',
-backgroundColor: 'rgba(255, 105, 180, 0)',
-fill: false,
-tension: 0.1,
-pointRadius: 0,
-borderWidth: 0,
-//hidden: true // Start hidden
-}
-]
-},
-options: {
-...getResponsiveChartOptions('Age-standardized prevalence rate (per 10,000 persons)'),
-plugins: {
-...getResponsiveChartOptions('Age-standardized prevalence rate (per 10,000 persons)').plugins,
-tooltip: {
-...getResponsiveChartOptions('Age-standardized prevalence rate (per 10,000 persons)').plugins.tooltip,
-callbacks: {
-label: function(context) {
-const label = context.dataset.label || '';
-if (label.includes('PI')) return null;
-
-const value = context.parsed.y || 0;
-
-// For forecast points, add prediction interval to tooltip
-if (label.includes('Forecast') && value) {
-let lowerValue, upperValue;
-
-if (label.includes('Total')) {
-// Find the indices for the prediction intervals
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Male')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-} else if (label.includes('Female')) {
-const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-
-if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-}
-}
-
-if (lowerValue && upperValue) {
-return [
-`${label}: ${value.toFixed(2)}`,
-`95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-];
-}
-}
-
-return `${label}: ${value.toFixed(2)}`;
-}
-}
-}
-}
-}
-});
-
-// Create custom legend for prevalence rate chart
-createCustomLegend(prevalenceRateChart, 'prevalenceRateLegend', true);
-
-// Show default prevalence chart
-togglePrevalence('number', null);
+    // Get chart contexts
+    const ctxNumber = document.getElementById('prevalenceNumberChart').getContext('2d');
+    const ctxRate = document.getElementById('prevalenceRateChart').getContext('2d');
+    
+    // Create combined data arrays for prevalence number chart
+    const totalPrevData = [];
+    const malePrevData = [];
+    const femalePrevData = [];
+    
+    const totalPrevForecastData = [];
+    const malePrevForecastData = []; 
+    const femalePrevForecastData = [];
+    
+    // Prepare data for prediction intervals
+    const totalPrevLowerData = [];
+    const totalPrevUpperData = [];
+    const malePrevLowerData = [];
+    const malePrevUpperData = [];
+    const femalePrevLowerData = [];
+    const femalePrevUpperData = [];
+    
+    // Fill historical data arrays
+    for (let i = 0; i < years.length; i++) {
+        totalPrevData.push(num_unique_prev[i]);
+        malePrevData.push(num_male_patient_prev[i]);
+        femalePrevData.push(num_female_patient_prev[i]);
+        
+        // Add null placeholders for forecast in historical period
+        if (i < years.length - 1) { // All except last point (2022)
+            totalPrevForecastData.push(null);
+            malePrevForecastData.push(null);
+            femalePrevForecastData.push(null);
+            
+            totalPrevLowerData.push(null);
+            totalPrevUpperData.push(null);
+            malePrevLowerData.push(null);
+            malePrevUpperData.push(null);
+            femalePrevLowerData.push(null);
+            femalePrevUpperData.push(null);
+        } else { // 2022 point (shared between historical and forecast)
+            totalPrevForecastData.push(totalPrevForecast[0]);
+            malePrevForecastData.push(malePrevForecast[0]);
+            femalePrevForecastData.push(femalePrevForecast[0]);
+            
+            totalPrevLowerData.push(totalPrevLower[0]);
+            totalPrevUpperData.push(totalPrevUpper[0]);
+            malePrevLowerData.push(malePrevLower[0]);
+            malePrevUpperData.push(malePrevUpper[0]);
+            femalePrevLowerData.push(femalePrevLower[0]);
+            femalePrevUpperData.push(femalePrevUpper[0]);
+        }
+    }
+    
+    // Add forecast data for 2023-2032
+    for (let i = 1; i < prevForecastYears.length; i++) { // Skip first (2022)
+        // Add null placeholders for historical in forecast period
+        totalPrevData.push(null);
+        malePrevData.push(null);
+        femalePrevData.push(null);
+        
+        // Add forecast data points
+        totalPrevForecastData.push(totalPrevForecast[i]);
+        malePrevForecastData.push(malePrevForecast[i]);
+        femalePrevForecastData.push(femalePrevForecast[i]);
+        
+        // Add prediction intervals
+        totalPrevLowerData.push(totalPrevLower[i]);
+        totalPrevUpperData.push(totalPrevUpper[i]);
+        malePrevLowerData.push(malePrevLower[i]);
+        malePrevUpperData.push(malePrevUpper[i]);
+        femalePrevLowerData.push(femalePrevLower[i]);
+        femalePrevUpperData.push(femalePrevUpper[i]);
+    }
+    
+    // Create combined years array (2014-2032)
+    const allYears = [...years]; // Start with 2014-2022
+    
+    // Add 2023-2032 (excluding 2022 which is already included)
+    for (let i = 1; i < prevForecastYears.length; i++) {
+        allYears.push(prevForecastYears[i]);
+    }
+    
+    // Clean up any existing charts
+    if (prevalenceNumberChart) {
+        prevalenceNumberChart.destroy();
+    }
+    
+    // Create new prevalence number chart
+    prevalenceNumberChart = new Chart(ctxNumber, {
+        type: 'line',
+        data: {
+            labels: allYears,
+            datasets: [
+                // Total Cases - Historical
+                {
+                    label: 'Total  ',
+                    data: totalPrevData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500'
+                },
+                // Male Cases - Historical
+                {
+                    label: 'Male  ',
+                    data: malePrevData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047'
+                },
+                // Female Cases - Historical
+                {
+                    label: 'Female  ',
+                    data: femalePrevData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6'
+                },
+                // Total Cases - Lower Confidence Interval
+                {
+                    label: 'Total Lower PI',
+                    data: totalPrevLowerData,
+                    borderColor: 'rgba(255, 0, 0, 0.2)',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Total Cases - Forecast
+                {
+                    label: 'Total (Forecast)',
+                    data: totalPrevForecastData,
+                    borderColor: '#fb8500', 
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500',
+                    //hidden: true // Start hidden
+                },
+                // Total Cases - Upper Confidence Interval
+                {
+                    label: 'Total Upper PI',
+                    data: totalPrevUpperData,
+                    borderColor: 'rgba(255, 0, 0, 0)',
+                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Lower Confidence Interval
+                {
+                    label: 'Male Lower PI',
+                    data: malePrevLowerData,
+                    borderColor: 'rgba(0, 0, 255, 0.2)',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Forecast
+                {
+                    label: 'Male (Forecast)',
+                    data: malePrevForecastData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047',
+                    //hidden: true // Start hidden
+                },
+                // Male Cases - Upper Confidence Interval
+                {
+                    label: 'Male Upper PI',
+                    data: malePrevUpperData,
+                    borderColor: 'rgba(0, 0, 255, 0)',
+                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Lower Confidence Interval
+                {
+                    label: 'Female Lower PI',
+                    data: femalePrevLowerData,
+                    borderColor: 'rgba(255, 105, 180, 0.2)',
+                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Forecast
+                {
+                    label: 'Female (Forecast)',
+                    data: femalePrevForecastData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6',
+                    //hidden: true // Start hidden
+                },
+                // Female Cases - Upper Confidence Interval
+                {
+                    label: 'Female Upper PI',
+                    data: femalePrevUpperData,
+                    borderColor: 'rgba(255, 105, 180, 0)',
+                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${Math.round(value)}`,
+                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${Math.round(value)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of prevalent cases'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
+    });
+    
+    // Create custom legend for prevalence number chart
+    createCustomLegend(prevalenceNumberChart, 'prevalenceNumberLegend', false);
+    
+    // Prepare data for prevalence rate chart
+    const totalRateData = [];
+    const maleRateData = [];
+    const femaleRateData = [];
+    
+    const totalRateForecastData = [];
+    const maleRateForecastData = [];
+    const femaleRateForecastData = [];
+    
+    // Prepare prediction intervals for rate chart
+    const totalRateLowerData = [];
+    const totalRateUpperData = [];
+    const maleRateLowerData = [];
+    const maleRateUpperData = [];
+    const femaleRateLowerData = [];
+    const femaleRateUpperData = [];
+    
+    // Fill historical data arrays
+    for (let i = 0; i < years.length; i++) {
+        totalRateData.push(Age_Standardized_Prevalence[i]);
+        maleRateData.push(age_standardized_prev_male[i]);
+        femaleRateData.push(age_standardized_prev_female[i]);
+        
+        // Add null placeholders for forecast in historical period
+        if (i < years.length - 1) { // All except last point (2022)
+            totalRateForecastData.push(null);
+            maleRateForecastData.push(null);
+            femaleRateForecastData.push(null);
+            
+            totalRateLowerData.push(null);
+            totalRateUpperData.push(null);
+            maleRateLowerData.push(null);
+            maleRateUpperData.push(null);
+            femaleRateLowerData.push(null);
+            femaleRateUpperData.push(null);
+        } else { // 2022 point (shared between historical and forecast)
+            totalRateForecastData.push(totalPrevRateForecast[0]);
+            maleRateForecastData.push(malePrevRateForecast[0]);
+            femaleRateForecastData.push(femalePrevRateForecast[0]);
+            
+            totalRateLowerData.push(totalPrevRateLower[0]);
+            totalRateUpperData.push(totalPrevRateUpper[0]);
+            maleRateLowerData.push(malePrevRateLower[0]);
+            maleRateUpperData.push(malePrevRateUpper[0]);
+            femaleRateLowerData.push(femalePrevRateLower[0]);
+            femaleRateUpperData.push(femalePrevRateUpper[0]);
+        }
+    }
+    
+    // Add forecast data for 2023-2032
+    for (let i = 1; i < prevForecastYears.length; i++) { // Skip first (2022)
+        // Add null placeholders for historical in forecast period
+        totalRateData.push(null);
+        maleRateData.push(null);
+        femaleRateData.push(null);
+        
+        // Add forecast data points
+        totalRateForecastData.push(totalPrevRateForecast[i]);
+        maleRateForecastData.push(malePrevRateForecast[i]);
+        femaleRateForecastData.push(femalePrevRateForecast[i]);
+        
+        // Add prediction intervals
+        totalRateLowerData.push(totalPrevRateLower[i]);
+        totalRateUpperData.push(totalPrevRateUpper[i]);
+        maleRateLowerData.push(malePrevRateLower[i]);
+        maleRateUpperData.push(malePrevRateUpper[i]);
+        femaleRateLowerData.push(femalePrevRateLower[i]);
+        femaleRateUpperData.push(femalePrevRateUpper[i]);
+    }
+    
+    // Clean up any existing rate chart
+    if (prevalenceRateChart) {
+        prevalenceRateChart.destroy();
+    }
+    
+    // Create new prevalence rate chart
+    prevalenceRateChart = new Chart(ctxRate, {
+        type: 'line',
+        data: {
+            labels: allYears,
+            datasets: [
+                // Total Rate - Historical
+                {
+                    label: 'Total  ',
+                    data: totalRateData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500'
+                },
+                // Male Rate - Historical
+                {
+                    label: 'Male  ',
+                    data: maleRateData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047'
+                },
+                // Female Rate - Historical
+                {
+                    label: 'Female  ',
+                    data: femaleRateData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6'
+                },
+                // Total Rate - Lower Confidence Interval
+                {
+                    label: 'Total Lower PI',
+                    data: totalRateLowerData,
+                    borderColor: 'rgba(255, 0, 0, 0.2)',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Total Rate - Forecast
+                {
+                    label: 'Total (Forecast)',
+                    data: totalRateForecastData,
+                    borderColor: '#fb8500',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fb8500',
+                    //hidden: true // Start hidden
+                },
+                // Total Rate - Upper Confidence Interval
+                {
+                    label: 'Total Upper PI',
+                    data: totalRateUpperData,
+                    borderColor: 'rgba(255, 0, 0, 0)',
+                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Lower Confidence Interval
+                {
+                    label: 'Male Lower PI',
+                    data: maleRateLowerData,
+                    borderColor: 'rgba(0, 0, 255, 0.2)',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Forecast
+                {
+                    label: 'Male (Forecast)',
+                    data: maleRateForecastData,
+                    borderColor: '#023047',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#023047',
+                    //hidden: true // Start hidden
+                },
+                // Male Rate - Upper Confidence Interval
+                {
+                    label: 'Male Upper PI',
+                    data: maleRateUpperData,
+                    borderColor: 'rgba(0, 0, 255, 0)',
+                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Lower Confidence Interval
+                {
+                    label: 'Female Lower PI',
+                    data: femaleRateLowerData,
+                    borderColor: 'rgba(255, 105, 180, 0.2)',
+                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Forecast
+                {
+                    label: 'Female (Forecast)',
+                    data: femaleRateForecastData,
+                    borderColor: '#8ecae6',
+                    fill: false,
+                    tension: 0.1,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8ecae6',
+                    //hidden: true // Start hidden
+                },
+                // Female Rate - Upper Confidence Interval
+                {
+                    label: 'Female Upper PI',
+                    data: femaleRateUpperData,
+                    borderColor: 'rgba(255, 105, 180, 0)',
+                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    //hidden: true // Start hidden
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${value.toFixed(2)}`,
+                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${value.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Age-standardized incidence rate (per 10,000 persons)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
+    });
+    
+    // Create custom legend for prevalence rate chart
+    createCustomLegend(prevalenceRateChart, 'prevalenceRateLegend', true);
+    
+    // Show default prevalence chart
+    togglePrevalence('number', null);
 }
 
 function updateCostChart() {
-// Get the context for the cost chart
-const ctx = document.getElementById('myChart');
+    // Get the context for the cost chart
+    const ctx = document.getElementById('myChart').getContext('2d');
+    
+    // If a chart already exists, destroy it
+    if (myChart) {
+        myChart.destroy();
+    }
+    
+    // Remove any existing legend first
+    const existingLegend = document.getElementById('cost-legend');
+    if (existingLegend) {
+        existingLegend.remove();
+    }
+    
+    // Create arrays to hold data for both historical and forecast costs
+    const allYears = [...historicalYears, ...costForecastYears];
+    
+    // Create combined data arrays for each cost type
+    const combinedIP = [];
+    const combinedOP = [];
+    const combinedAE = [];
+    
+    // Fill in the historical years
+    for (let i = 0; i < historicalYears.length; i++) {
+        combinedIP.push(historicalIP[i]);
+        combinedOP.push(historicalOP[i]);
+        combinedAE.push(historicalAE[i]);
+    }
+    
+    // Fill in the forecast years
+    for (let i = 0; i < costForecastYears.length; i++) {
+        combinedIP.push(forecastIP[i]);
+        combinedOP.push(forecastOP[i]);
+        combinedAE.push(forecastAE[i]);
+    }
+    
+    // Create patterns for forecast data
+    const ipPattern = createDiagonalPattern('#00b4d8');
+    const opPattern = createDiagonalPattern('#38b000');
+    const aePattern = createDiagonalPattern('#FA7476');
+    
+    // Create the cost data structure
+    const costData = {
+        labels: allYears,
+        datasets: [
+            // Inpatient Cost (both historical and forecast)
+            {
+                label: 'Inpatient Cost',
+                data: combinedIP,
+                backgroundColor: function(context) {
+                    // Use different colors for historical vs forecast
+                    const index = context.dataIndex;
+                    return index < historicalYears.length ? '#0072B2' : ipPattern;
+                },
+                stack: 'Stack 0'
+            },
+            // Outpatient Cost (both historical and forecast)
+            {
+                label: 'Outpatient Cost',
+                data: combinedOP,
+                backgroundColor: function(context) {
+                    // Use different colors for historical vs forecast
+                    const index = context.dataIndex;
+                    return index < historicalYears.length ? '#009E73' : opPattern;
+                },
+                stack: 'Stack 0'
+            },
+            // A&E Cost (both historical and forecast)
+            {
+                label: 'Accident & Emergency Cost',
+                data: combinedAE,
+                backgroundColor: function(context) {
+                    // Use different colors for historical vs forecast
+                    const index = context.dataIndex;
+                    return index < historicalYears.length ? '#f94144' : aePattern;
+                },
+                stack: 'Stack 0'
+            }
+        ]
+    };
+    
+    // Function to create a diagonal pattern
+    function createDiagonalPattern(color) {
+        const patternCanvas = document.createElement('canvas');
+        const patternContext = patternCanvas.getContext('2d');
+        
+        // Set canvas size
+        patternCanvas.width = 10;
+        patternCanvas.height = 10;
+        
+        // Fill with base color
+        patternContext.fillStyle = color;
+        patternContext.fillRect(0, 0, 10, 10);
+        
+        // Draw diagonal lines
+        patternContext.strokeStyle = 'white';
+        patternContext.lineWidth = 1;
+        patternContext.beginPath();
+        
+        // Draw diagonal lines from top-left to bottom-right
+        for (let i = -10; i < 20; i += 5) {
+            patternContext.moveTo(i, 0);
+            patternContext.lineTo(i + 10, 10);
+        }
+        
+        patternContext.stroke();
+        
+        // Return pattern
+        return patternContext.createPattern(patternCanvas, 'repeat');
+    }
 
-if (!ctx) {
-    console.error('Cost chart canvas not found');
-    return;
-}
-
-// If a chart already exists, destroy it
-if (myChart) {
-myChart.destroy();
-}
-
-// Remove any existing legend first
-const existingLegend = document.getElementById('cost-legend');
-if (existingLegend) {
-existingLegend.remove();
-}
-
-// Create arrays to hold data for both historical and forecast costs
-const allYears = [...historicalYears, ...costForecastYears];
-
-// Create combined data arrays for each cost type
-const combinedIP = [];
-const combinedOP = [];
-const combinedAE = [];
-
-// Fill in the historical years
-for (let i = 0; i < historicalYears.length; i++) {
-combinedIP.push(historicalIP[i]);
-combinedOP.push(historicalOP[i]);
-combinedAE.push(historicalAE[i]);
-}
-
-// Fill in the forecast years
-for (let i = 0; i < costForecastYears.length; i++) {
-combinedIP.push(forecastIP[i]);
-combinedOP.push(forecastOP[i]);
-combinedAE.push(forecastAE[i]);
-}
-
-// Create patterns for forecast data
-const ipPattern = createDiagonalPattern('#00b4d8');
-const opPattern = createDiagonalPattern('#38b000');
-const aePattern = createDiagonalPattern('#FA7476');
-
-// Create the cost data structure
-const costData = {
-labels: allYears,
-datasets: [
-// Inpatient Cost (both historical and forecast)
-{
-label: 'Inpatient Cost',
-data: combinedIP,
-backgroundColor: function(context) {
-// Use different colors for historical vs forecast
-const index = context.dataIndex;
-return index < historicalYears.length ? '#0072B2' : ipPattern;
-},
-stack: 'Stack 0'
-},
-// Outpatient Cost (both historical and forecast)
-{
-label: 'Outpatient Cost',
-data: combinedOP,
-backgroundColor: function(context) {
-// Use different colors for historical vs forecast
-const index = context.dataIndex;
-return index < historicalYears.length ? '#009E73' : opPattern;
-},
-stack: 'Stack 0'
-},
-// A&E Cost (both historical and forecast)
-{
-label: 'Accident & Emergency Cost',
-data: combinedAE,
-backgroundColor: function(context) {
-// Use different colors for historical vs forecast
-const index = context.dataIndex;
-return index < historicalYears.length ? '#f94144' : aePattern;
-},
-stack: 'Stack 0'
-}
-]
-};
-
-// Function to create a diagonal pattern
-function createDiagonalPattern(color) {
-const patternCanvas = document.createElement('canvas');
-const patternContext = patternCanvas.getContext('2d');
-
-// Set canvas size
-patternCanvas.width = 10;
-patternCanvas.height = 10;
-
-// Fill with base color
-patternContext.fillStyle = color;
-patternContext.fillRect(0, 0, 10, 10);
-
-// Draw diagonal lines
-patternContext.strokeStyle = 'white';
-patternContext.lineWidth = 1;
-patternContext.beginPath();
-
-// Draw diagonal lines from top-left to bottom-right
-for (let i = -10; i < 20; i += 5) {
-patternContext.moveTo(i, 0);
-patternContext.lineTo(i + 10, 10);
-}
-
-patternContext.stroke();
-
-// Return pattern
-return patternContext.createPattern(patternCanvas, 'repeat');
-}
-
-// Chart configuration
-const config = {
-type: 'bar',
-data: costData,
-options: {
-...getResponsiveChartOptions('Cost (HKD)'),
-plugins: {
-...getResponsiveChartOptions('Cost (HKD)').plugins,
-legend: {
-display: false // Hide the default legend, we'll create a custom one
-},
-tooltip: {
-...getResponsiveChartOptions('Cost (HKD)').plugins.tooltip,
-callbacks: {
-label: function(context) {
-const value = context.raw;
-if (value === null) return null;
-
-// Add (Forecast) label for forecast years
-let label = context.dataset.label;
-if (context.dataIndex >= historicalYears.length) {
-label += ' (Forecast)';
-
-// If it's a forecast, add prediction interval if available
-if (context.dataset.label === 'Inpatient Cost') {
-const lower = forecastIPLower[context.dataIndex - historicalYears.length];
-const upper = forecastIPUpper[context.dataIndex - historicalYears.length];
-if (lower && upper) {
-const lowerInMillions = (lower / 1000000).toFixed(2);
-const upperInMillions = (upper / 1000000).toFixed(2);
-return [
-`${label}: HK$${(value / 1000000).toFixed(2)} million`,
-`95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-];
-}
-} else if (context.dataset.label === 'Outpatient Cost') {
-const lower = forecastOPLower[context.dataIndex - historicalYears.length];
-const upper = forecastOPUpper[context.dataIndex - historicalYears.length];
-if (lower && upper) {
-const lowerInMillions = (lower / 1000000).toFixed(2);
-const upperInMillions = (upper / 1000000).toFixed(2);
-return [
-`${label}: HK$${(value / 1000000).toFixed(2)} million`,
-`95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-];
-}
-} else if (context.dataset.label === 'Accident & Emergency Cost') {
-const lower = forecastAELower[context.dataIndex - historicalYears.length];
-const upper = forecastAEUpper[context.dataIndex - historicalYears.length];
-if (lower && upper) {
-const lowerInMillions = (lower / 1000000).toFixed(2);
-const upperInMillions = (upper / 1000000).toFixed(2);
-return [
-`${label}: HK$${(value / 1000000).toFixed(2)} million`,
-`95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-];
-}
-}
-}
-
-// Format to millions with 2 decimal places
-const valueInMillions = (value / 1000000).toFixed(2);
-return `${label}: HK$${valueInMillions} million`;
-}
-}
-}
-},
-scales: {
-x: {
-stacked: true,
-title: {
-display: true,
-text: 'Year',
-font: {
-size: window.innerWidth <= 768 ? 10 : 12
-}
-},
-offset: true,
-ticks: {
-align: 'center',
-font: {
-size: window.innerWidth <= 768 ? 9 : 11
-}
-}
-},
-y: {
-stacked: true,
-title: {
-display: true,
-text: 'Cost (HKD)',
-font: {
-size: window.innerWidth <= 768 ? 10 : 12
-}
-},
-ticks: {
-callback: function(value) {
-// Format y-axis labels to millions
-return `${(value / 1000000).toFixed(0)}M`;
-},
-font: {
-size: window.innerWidth <= 768 ? 9 : 11
-}
-}
-}
-},
-barPercentage: 0.99,
-categoryPercentage: 0.9
-}
-};
-
-// Create a custom HTML legend with two rows
-const legendContainer = document.createElement('div');
-legendContainer.id = 'cost-legend';
-legendContainer.style.textAlign = 'center';
-legendContainer.style.margin = '10px auto 20px auto'; // Add bottom margin
-legendContainer.style.maxWidth = '100%';
-legendContainer.style.width = '100%';
-legendContainer.style.padding = '0 10px';
-
-// Create the first row (Historical)
-const historicalRow = document.createElement('div');
-historicalRow.style.display = 'flex';
-historicalRow.style.justifyContent = 'center';
-historicalRow.style.margin = '5px 0';
-historicalRow.style.flexWrap = 'wrap';
-historicalRow.style.gap = '5px';
-
-// Create the second row (Forecast)
-const forecastRow = document.createElement('div');
-forecastRow.style.display = 'flex';
-forecastRow.style.justifyContent = 'center';
-forecastRow.style.margin = '5px 0';
-forecastRow.style.flexWrap = 'wrap';
-forecastRow.style.gap = '5px';
-
-// Legend data
-const legendItems = [
-// Historical items
-{ label: 'Inpatient Cost', color: '#0072B2', datasetIndex: 0 },
-{ label: 'Outpatient Cost', color: '#009E73', datasetIndex: 1 },
-{ label: 'Accident & Emergency Cost', color: '#f94144', datasetIndex: 2 },
-// Forecast items
-{ label: 'Inpatient Cost (Forecast)', pattern: ipPattern, color: '#00b4d8', datasetIndex: 0 },
-{ label: 'Outpatient Cost (Forecast)', pattern: opPattern, color: '#38b000', datasetIndex: 1 },
-{ label: 'Accident & Emergency Cost (Forecast)', pattern: aePattern, color: '#FA7476', datasetIndex: 2 }
-];
-
-// Add items to respective rows
-for (let i = 0; i < 3; i++) {
-const item = legendItems[i];
-const legendItem = createLegendItem(item.label, item.color, item.datasetIndex, false);
-historicalRow.appendChild(legendItem);
-}
-
-for (let i = 3; i < 6; i++) {
-const item = legendItems[i];
-const legendItem = createLegendItem(item.label, item.color, item.datasetIndex, true, item.pattern);
-forecastRow.appendChild(legendItem);
-}
-
-legendContainer.appendChild(historicalRow);
-legendContainer.appendChild(forecastRow);
-
-// Add the legend to the cost-legend-container
-const legendContainerDiv = document.getElementById('cost-legend-container');
-if (legendContainerDiv) {
-    legendContainerDiv.appendChild(legendContainer);
-} else {
-    console.error('cost-legend-container not found');
-    return;
-}
-
-// Create the chart
-myChart = new Chart(ctx.getContext('2d'), config);
-
-// Function to create a legend item
-function createLegendItem(label, color, datasetIndex, isForecast, pattern) {
-const item = document.createElement('div');
-item.style.display = 'flex';
-item.style.alignItems = 'center';
-item.style.margin = '2px 5px';
-item.style.cursor = 'pointer';
-
-// Color box
-const colorBox = document.createElement('span');
-colorBox.style.display = 'inline-block';
-colorBox.style.width = window.innerWidth <= 768 ? '10px' : '15px';
-colorBox.style.height = window.innerWidth <= 768 ? '10px' : '15px';
-colorBox.style.marginRight = window.innerWidth <= 768 ? '3px' : '5px';
-colorBox.style.flexShrink = '0';
-
-if (isForecast) {
-// Create a small canvas for the pattern
-const canvas = document.createElement('canvas');
-const size = window.innerWidth <= 768 ? 10 : 15;
-canvas.width = size;
-canvas.height = size;
-canvas.style.width = size + 'px';
-canvas.style.height = size + 'px';
-canvas.style.display = 'block';
-const ctx = canvas.getContext('2d');
-
-// Draw the pattern background
-ctx.fillStyle = color;
-ctx.fillRect(0, 0, size, size);
-
-// Add diagonal lines
-ctx.strokeStyle = 'white';
-ctx.lineWidth = 1;
-ctx.beginPath();
-for (let i = -size; i < size * 2; i += 5) {
-ctx.moveTo(i, 0);
-ctx.lineTo(i + size, size);
-}
-ctx.stroke();
-
-colorBox.appendChild(canvas);
-} else {
-colorBox.style.backgroundColor = color;
-}
-
-// Text label
-const textSpan = document.createElement('span');
-textSpan.style.fontFamily = 'Arial, sans-serif';
-textSpan.style.fontSize = window.innerWidth <= 768 ? '10px' : '12px';
-textSpan.style.fontWeight = '530';
-textSpan.style.color = '#545151';
-textSpan.textContent = label;
-
-item.appendChild(colorBox);
-item.appendChild(textSpan);
-
-// Add click handler for toggling visibility
-item.addEventListener('click', function() {
-const meta = myChart.getDatasetMeta(datasetIndex);
-meta.hidden = !meta.hidden;
-
-// Visual feedback for hidden state
-if (meta.hidden) {
-item.style.opacity = '0.5';
-textSpan.style.textDecoration = 'line-through';
-} else {
-item.style.opacity = '1';
-textSpan.style.textDecoration = 'none';
-}
-
-myChart.update();
-});
-
-return item;
-}
+    // Chart configuration
+    const config = {
+        type: 'bar',
+        data: costData,
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Hide the default legend, we'll create a custom one
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            if (value === null) return null;
+                            
+                            // Add (Forecast) label for forecast years
+                            let label = context.dataset.label;
+                            if (context.dataIndex >= historicalYears.length) {
+                                label += ' (Forecast)';
+                                
+                                // If it's a forecast, add prediction interval if available
+                                if (context.dataset.label === 'Inpatient Cost') {
+                                    const lower = forecastIPLower[context.dataIndex - historicalYears.length];
+                                    const upper = forecastIPUpper[context.dataIndex - historicalYears.length];
+                                    if (lower && upper) {
+                                        const lowerInMillions = (lower / 1000000).toFixed(2);
+                                        const upperInMillions = (upper / 1000000).toFixed(2);
+                                        return [
+                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
+                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
+                                        ];
+                                    }
+                                } else if (context.dataset.label === 'Outpatient Cost') {
+                                    const lower = forecastOPLower[context.dataIndex - historicalYears.length];
+                                    const upper = forecastOPUpper[context.dataIndex - historicalYears.length];
+                                    if (lower && upper) {
+                                        const lowerInMillions = (lower / 1000000).toFixed(2);
+                                        const upperInMillions = (upper / 1000000).toFixed(2);
+                                        return [
+                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
+                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
+                                        ];
+                                    }
+                                } else if (context.dataset.label === 'Accident & Emergency Cost') {
+                                    const lower = forecastAELower[context.dataIndex - historicalYears.length];
+                                    const upper = forecastAEUpper[context.dataIndex - historicalYears.length];
+                                    if (lower && upper) {
+                                        const lowerInMillions = (lower / 1000000).toFixed(2);
+                                        const upperInMillions = (upper / 1000000).toFixed(2);
+                                        return [
+                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
+                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
+                                        ];
+                                    }
+                                }
+                            }
+                            
+                            // Format to millions with 2 decimal places
+                            const valueInMillions = (value / 1000000).toFixed(2);
+                            return `${label}: HK$${valueInMillions} million`;
+                        }
+                    }
+                }
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    offset: true,
+                    ticks: {
+                        align: 'center'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Cost (HKD)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            // Format y-axis labels to millions
+                            return `${(value / 1000000).toFixed(0)}M`;
+                        }
+                    }
+                }
+            },
+            barPercentage: 0.99,
+            categoryPercentage: 0.9
+        }
+    };
+    
+    // Create a custom HTML legend with two rows
+    const legendContainer = document.createElement('div');
+    legendContainer.id = 'cost-legend';
+    legendContainer.style.textAlign = 'center';
+    legendContainer.style.margin = '10px auto 20px auto'; // Add bottom margin
+    legendContainer.style.maxWidth = '800px';
+    
+    // Create the first row (Historical)
+    const historicalRow = document.createElement('div');
+    historicalRow.style.display = 'flex';
+    historicalRow.style.justifyContent = 'center';
+    historicalRow.style.margin = '5px 0';
+    
+    // Create the second row (Forecast)
+    const forecastRow = document.createElement('div');
+    forecastRow.style.display = 'flex';
+    forecastRow.style.justifyContent = 'center';
+    forecastRow.style.margin = '5px 0';
+    
+    // Legend data
+    const legendItems = [
+        // Historical items
+        { label: 'Inpatient Cost', color: '#0072B2', datasetIndex: 0 },
+        { label: 'Outpatient Cost', color: '#009E73', datasetIndex: 1 },
+        { label: 'Accident & Emergency Cost', color: '#f94144', datasetIndex: 2 },
+        // Forecast items
+        { label: 'Inpatient Cost (Forecast)', pattern: ipPattern, color: '#00b4d8', datasetIndex: 0 },
+        { label: 'Outpatient Cost (Forecast)', pattern: opPattern, color: '#38b000', datasetIndex: 1 },
+        { label: 'Accident & Emergency Cost (Forecast)', pattern: aePattern, color: '#FA7476', datasetIndex: 2 }
+    ];
+    
+    // Add items to respective rows
+    for (let i = 0; i < 3; i++) {
+        const item = legendItems[i];
+        const legendItem = createLegendItem(item.label, item.color, item.datasetIndex, false);
+        historicalRow.appendChild(legendItem);
+    }
+    
+    for (let i = 3; i < 6; i++) {
+        const item = legendItems[i];
+        const legendItem = createLegendItem(item.label, item.color, item.datasetIndex, true, item.pattern);
+        forecastRow.appendChild(legendItem);
+    }
+    
+    legendContainer.appendChild(historicalRow);
+    legendContainer.appendChild(forecastRow);
+    
+    // Add the legend to the DOM before the canvas
+    const chartContainer = document.getElementById('chart-container');
+    const canvasElement = document.getElementById('myChart');
+    chartContainer.insertBefore(legendContainer, canvasElement);
+    
+    // Create the chart
+    myChart = new Chart(ctx, config);
+    
+    // Function to create a legend item
+    function createLegendItem(label, color, datasetIndex, isForecast, pattern) {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.margin = '0 10px';
+        item.style.cursor = 'pointer';
+        
+        // Color box
+        const colorBox = document.createElement('span');
+        colorBox.style.display = 'inline-block';
+        colorBox.style.width = '15px';
+        colorBox.style.height = '15px';
+        colorBox.style.marginRight = '5px';
+        
+        if (isForecast) {
+            // Create a small canvas for the pattern
+            const canvas = document.createElement('canvas');
+            canvas.width = 15;
+            canvas.height = 15;
+            canvas.style.width = '15px';   // Force canvas to be 15px wide
+            canvas.style.height = '15px';  // Force canvas to be 15px tall
+            canvas.style.display = 'block'; // Ensure it renders as a block
+            const ctx = canvas.getContext('2d');
+            
+            // Draw the pattern background
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 15, 15);
+            
+            // Add diagonal lines
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = -15; i < 30; i += 5) {
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + 15, 15);
+            }
+            ctx.stroke();
+            
+            colorBox.appendChild(canvas);
+        } else {
+            colorBox.style.backgroundColor = color;
+        }
+        
+        // Text label
+        const textSpan = document.createElement('span');
+        textSpan.style.fontFamily = 'Arial, sans-serif';
+        textSpan.style.fontSize = '12px';
+        textSpan.style.fontWeight = '530';
+        textSpan.style.color = '#545151';
+        textSpan.textContent = label;
+        
+        item.appendChild(colorBox);
+        item.appendChild(textSpan);
+        
+        // Add click handler for toggling visibility
+        item.addEventListener('click', function() {
+            const meta = myChart.getDatasetMeta(datasetIndex);
+            meta.hidden = !meta.hidden;
+            
+            // Visual feedback for hidden state
+            if (meta.hidden) {
+                item.style.opacity = '0.5';
+                textSpan.style.textDecoration = 'line-through';
+            } else {
+                item.style.opacity = '1';
+                textSpan.style.textDecoration = 'none';
+            }
+            
+            myChart.update();
+        });
+        
+        return item;
+    }
 }
 
 function createKMCurve() {
-Promise.all([
-new Promise((resolve) => {
-Papa.parse('KM_curve_data_by_Sex.csv', {
-download: true,
-header: true,
-complete: function(results) {
-resolve({ key: "Sex Groups", data: results.data });
-},
-error: function(error) {
-console.error("Error loading KM_curve_data_by_Sex.csv:", error);
-resolve({ key: "Sex Groups", data: [] });
-}
-});
-}),
-new Promise((resolve) => {
-Papa.parse('KM_curve_data_total.csv', {
-download: true,
-header: true,
-complete: function(results) {
-resolve({ key: "Total Population", data: results.data });
-},
-error: function(error) {
-console.error("Error loading KM_curve_data_total.csv:", error);
-resolve({ key: "Total Population", data: [] });
-}
-});
-})
-]).then(([sexData, totalData]) => {
-// Set up SVG canvas with responsive dimensions
-const containerWidth = document.getElementById('kmChartContainer').offsetWidth || 800;
-const svg = d3.select("#chart");
-svg.attr("width", "100%").attr("height", window.innerWidth <= 768 ? "250" : "300");
-const svgRect = svg.node().getBoundingClientRect();
-const margin = { 
-top: 20, 
-right: window.innerWidth <= 768 ? 100 : 150, 
-bottom: window.innerWidth <= 768 ? 40 : 50, 
-left: window.innerWidth <= 768 ? 60 : 100 
-};
-const width = (containerWidth || 800) - margin.left - margin.right;
-const height = (window.innerWidth <= 768 ? 250 : 300) - margin.top - margin.bottom;
+    Promise.all([
+        new Promise((resolve) => {
+            Papa.parse('KM_curve_data_by_Sex.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    resolve({ key: "Sex Groups", data: results.data });
+                },
+                error: function(error) {
+                    console.error("Error loading KM_curve_data_by_Sex.csv:", error);
+                    resolve({ key: "Sex Groups", data: [] });
+                }
+            });
+        }),
+        new Promise((resolve) => {
+            Papa.parse('KM_curve_data_total.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    resolve({ key: "Total Population", data: results.data });
+                },
+                error: function(error) {
+                    console.error("Error loading KM_curve_data_total.csv:", error);
+                    resolve({ key: "Total Population", data: [] });
+                }
+            });
+        })
+    ]).then(([sexData, totalData]) => {
+        // Set up SVG canvas
+        const svg = d3.select("#chart");
+        const margin = { top: 20, right: 150, bottom: 50, left: 100 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-// Clear existing content
-svg.selectAll("*").remove();
-const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        // Check if data is available
+        if (!sexData.data.length || !totalData.data.length) {
+            g.append("text")
+                .attr("x", width/2)
+                .attr("y", height/2)
+                .attr("text-anchor", "middle")
+                .text("No survival data available");
+            return;
+        }
 
-// Check if data is available
-if (!sexData.data.length || !totalData.data.length) {
-g.append("text")
-.attr("x", width/2)
-.attr("y", height/2)
-.attr("text-anchor", "middle")
-.text("No survival data available");
-return;
-}
+        // Combine data sources
+        const datasets = {
+            "Sex Groups": d3.group(sexData.data, d => d.Sex),
+            "Total Population": totalData.data
+        };
 
-// Combine data sources
-const datasets = {
-"Sex Groups": d3.group(sexData.data, d => d.Sex),
-"Total Population": totalData.data
-};
+        // Define scales
+        const x = d3.scaleLinear()
+            .domain([0, d3.max([...sexData.data, ...totalData.data], d => +d.time)])
+            .range([0, width]);
 
-// Define scales
-const x = d3.scaleLinear()
-.domain([0, d3.max([...sexData.data, ...totalData.data], d => +d.time)])
-.range([0, width]);
+        const y = d3.scaleLinear()
+            .domain([0, 1])
+            .range([height, 0]);
 
-const y = d3.scaleLinear()
-.domain([0, 1])
-.range([height, 0]);
+        // Add x-axis
+        const xAxis = g.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x)
+                .ticks(9)
+                .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            );
 
-// Add x-axis
-const xAxis = g.append("g")
-.attr("transform", `translate(0,${height})`)
-.call(d3.axisBottom(x)
-.ticks(9)
-.tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-);
+        // Customize x-axis font style
+        xAxis.selectAll("text")
+            .style("font-size", "12px")
+            .style("font-family", "Arial, sans-serif");
+        
+        // Add y-axis
+        const yAxis = g.append("g")
+            .call(d3.axisLeft(y)
+                .ticks(10)
+                .tickFormat(d3.format(".0%"))
+            );
 
-// Customize x-axis font style
-xAxis.selectAll("text")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.style("font-family", "Arial, sans-serif");
+        // Customize y-axis font style
+        yAxis.selectAll("text")
+            .style("font-size", "12px")
+            .style("font-family", "Arial, sans-serif");
 
-// Add y-axis
-const yAxis = g.append("g")
-.call(d3.axisLeft(y)
-.ticks(10)
-.tickFormat(d3.format(".0%"))
-);
+        // Axis labels
+        g.append("text")
+            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 10})`)
+            .style("text-anchor", "middle")
+            .text("Time Since Diagnosis (Years)");
 
-// Customize y-axis font style
-yAxis.selectAll("text")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.style("font-family", "Arial, sans-serif");
+        g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left + 20)
+            .attr("x", 0 - height / 2)
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Survival Probability (%)");
 
-// Axis labels
-g.append("text")
-.attr("transform", `translate(${width / 2}, ${height + margin.bottom - 10})`)
-.style("text-anchor", "middle")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.text("Time Since Diagnosis (Years)");
+        // Line generator
+        const line = d3.line()
+            .x(d => x(+d.time))
+            .y(d => y(+d.survival));
 
-g.append("text")
-.attr("transform", "rotate(-90)")
-.attr("y", 0 - margin.left + 20)
-.attr("x", 0 - height / 2)
-.attr("dy", "1em")
-.style("text-anchor", "middle")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.text("Survival Probability (%)");
+        // Color scale
+        const color = d3.scaleOrdinal()
+            .domain(["sex.=F", "sex.=M", "Total"])
+            .range(["#8ecae6", "#023047", "#fb8500"]);
 
-// Line generator
-const line = d3.line()
-.x(d => x(+d.time))
-.y(d => y(+d.survival));
+        // Define a mapping for legend labels
+        const labelMapping = {
+            "sex.=F": "Female",
+            "sex.=M": "Male",
+            "Total": "Total"
+        };
 
-// Color scale
-const color = d3.scaleOrdinal()
-.domain(["sex.=F", "sex.=M", "Total"])
-.range(["#8ecae6", "#023047", "#fb8500"]);
+        // Draw survival curves
+        datasets["Sex Groups"].forEach((values, key) => {
+            g.append("path")
+                .datum(values)
+                .attr("fill", "none")
+                .attr("stroke", color(key))
+                .attr("stroke-width", 2.5)
+                .attr("d", line);
 
-// Define a mapping for legend labels
-const labelMapping = {
-"sex.=F": "Female",
-"sex.=M": "Male",
-"Total": "Total"
-};
+            // Legend for "Female" and "Male"
+            if (key === "sex.=F" || key === "sex.=M") {
+                svg.append("circle")
+                    .attr("cx", width + margin.right - 100)
+                    .attr("cy", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + 200)
+                    .attr("r", 5)
+                    .style("fill", color(key));
 
-// Draw survival curves
-datasets["Sex Groups"].forEach((values, key) => {
-g.append("path")
-.datum(values)
-.attr("fill", "none")
-.attr("stroke", color(key))
-.attr("stroke-width", 2.5)
-.attr("d", line);
+                svg.append("text")
+                    .attr("x", width + margin.right - 90)
+                    .attr("y", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + 204)
+                    .text(labelMapping[key])
+                    .style("font-size", "12px")
+                    .attr("alignment-baseline", "middle");
+            }
+        });
 
-// Legend for "Female" and "Male"
-if (key === "sex.=F" || key === "sex.=M") {
-svg.append("circle")
-.attr("cx", width + margin.right - (window.innerWidth <= 768 ? 80 : 100))
-.attr("cy", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + (window.innerWidth <= 768 ? 150 : 200))
-.attr("r", window.innerWidth <= 768 ? 3 : 5)
-.style("fill", color(key));
+        // Draw total population curve
+        g.append("path")
+            .datum(datasets["Total Population"])
+            .attr("fill", "none")
+            .attr("stroke", color("Total"))
+            .attr("stroke-width", 2.5)
+            .attr("d", line);
 
-svg.append("text")
-.attr("x", width + margin.right - (window.innerWidth <= 768 ? 70 : 90))
-.attr("y", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + (window.innerWidth <= 768 ? 154 : 204))
-.text(labelMapping[key])
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.attr("alignment-baseline", "middle");
-}
-});
+        // Legend for Total Population
+        svg.append("circle")
+            .attr("cx", width + margin.right - 100)
+            .attr("cy", 240)
+            .attr("r", 5)
+            .style("fill", color("Total"));
 
-// Draw total population curve
-g.append("path")
-.datum(datasets["Total Population"])
-.attr("fill", "none")
-.attr("stroke", color("Total"))
-.attr("stroke-width", 2.5)
-.attr("d", line);
+        svg.append("text")
+            .attr("x", width + margin.right - 90)
+            .attr("y", 244)
+            .text("Total")
+            .style("font-size", "12px")
+            .attr("alignment-baseline", "middle");
 
-// Legend for Total Population
-svg.append("circle")
-.attr("cx", width + margin.right - (window.innerWidth <= 768 ? 80 : 100))
-.attr("cy", window.innerWidth <= 768 ? 190 : 240)
-.attr("r", window.innerWidth <= 768 ? 3 : 5)
-.style("fill", color("Total"));
+        // Target time points for dots
+        const targetYears = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-svg.append("text")
-.attr("x", width + margin.right - (window.innerWidth <= 768 ? 70 : 90))
-.attr("y", window.innerWidth <= 768 ? 194 : 244)
-.text("Total")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.attr("alignment-baseline", "middle");
+        // Create tooltip
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("background", "rgba(0, 0, 0, 0.7)")
+            .style("color", "#fff")
+            .style("padding", "5px 10px")
+            .style("border-radius", "5px")
+            .style("font-size", "12px")
+            .style("pointer-events", "none")
+            .style("opacity", 0);
 
-// Target time points for dots
-const targetYears = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        // Function to add closest dots
+        function addClosestDots(values, key) {
+            targetYears.forEach(targetTime => {
+                const closestPoint = values.reduce((closest, current) => {
+                    const currentTime = +current.time;
+                    if (currentTime > 0 && currentTime <= targetTime && (!closest || currentTime > +closest.time)) {
+                        return current;
+                    }
+                    return closest;
+                }, null);
 
-// Create tooltip
-const tooltip = d3.select("body").append("div")
-.attr("class", "tooltip")
-.style("position", "absolute")
-.style("background", "rgba(0, 0, 0, 0.7)")
-.style("color", "#fff")
-.style("padding", "5px 10px")
-.style("border-radius", "5px")
-.style("font-size", window.innerWidth <= 768 ? "10px" : "12px")
-.style("pointer-events", "none")
-.style("opacity", 0);
+                if (closestPoint) {
+                    g.append("circle")
+                        .attr("cx", x(+closestPoint.time))
+                        .attr("cy", y(+closestPoint.survival))
+                        .attr("r", 5)
+                        .attr("fill", color(key))
+                        .on("mouseover", function (event) {
+                            tooltip
+                                .style("opacity", 1)
+                                .html(`${labelMapping[key] || "Total Population"}<br>Year: ${Math.round(closestPoint.time)}<br>Survival: ${(closestPoint.survival * 100).toFixed(2)}%`)
+                                .style("left", (event.pageX + 10) + "px")
+                                .style("top", (event.pageY - 20) + "px");
+                        })
+                        .on("mouseout", function () {
+                            tooltip.style("opacity", 0);
+                        });
+                }
+            });
+        }
 
-// Function to add closest dots
-function addClosestDots(values, key) {
-targetYears.forEach(targetTime => {
-const closestPoint = values.reduce((closest, current) => {
-const currentTime = +current.time;
-if (currentTime > 0 && currentTime <= targetTime && (!closest || currentTime > +closest.time)) {
-return current;
-}
-return closest;
-}, null);
+        // Add dots for "Female" and "Male"
+        datasets["Sex Groups"].forEach((values, key) => {
+            addClosestDots(values, key);
+        });
 
-if (closestPoint) {
-g.append("circle")
-.attr("cx", x(+closestPoint.time))
-.attr("cy", y(+closestPoint.survival))
-.attr("r", window.innerWidth <= 768 ? 3 : 5)
-.attr("fill", color(key))
-.on("mouseover", function (event) {
-tooltip
-.style("opacity", 1)
-.html(`${labelMapping[key] || "Total Population"}<br>Year: ${Math.round(closestPoint.time)}<br>Survival: ${(closestPoint.survival * 100).toFixed(2)}%`)
-.style("left", (event.pageX + 10) + "px")
-.style("top", (event.pageY - 20) + "px");
-})
-.on("mouseout", function () {
-tooltip.style("opacity", 0);
-});
-}
-});
-}
-
-// Add dots for "Female" and "Male"
-datasets["Sex Groups"].forEach((values, key) => {
-addClosestDots(values, key);
-});
-
-// Add dots for "Total Population"
-addClosestDots(datasets["Total Population"], "Total");
-});
+        // Add dots for "Total Population"
+        addClosestDots(datasets["Total Population"], "Total");
+    });
 }
 
 // Parse historical data first
 Papa.parse('incidence_data.csv', {
-download: true,
-header: true,
-complete: function(results) {
-// Extract historical data
-years = results.data.map(row => parseInt(row.Year)).filter(y => y);
-lastHistoricalYear = Math.max(...years);
+    download: true,
+    header: true,
+    complete: function(results) {
+        // Extract historical data
+        years = results.data.map(row => parseInt(row.Year)).filter(y => y);
+        lastHistoricalYear = Math.max(...years);
+        
+        // Process historical incidence data
+        num_inci = results.data.map(row => parseInt(row.num_inci) || 0);
+        male_incidence = results.data.map(row => parseInt(row.num_male_inci) || 0);
+        female_incidence = results.data.map(row => parseInt(row.num_female_inci) || 0);
+        incidence_rate = results.data.map(row => parseFloat(row.Age_standardized_Incidence) || 0);
+        male_incidence_rate = results.data.map(row => parseFloat(row.age_standardized_inci_male) || 0);
+        female_incidence_rate = results.data.map(row => parseFloat(row.age_standardized_inci_female) || 0);
+        
+        // Process historical prevalence data
+        num_unique_prev = results.data.map(row => parseInt(row.num_unique_prev) || 0);
+        num_male_patient_prev = results.data.map(row => parseInt(row.num_male_patient_prev) || 0);
+        num_female_patient_prev = results.data.map(row => parseInt(row.num_female_patient_prev) || 0);        
+        Age_Standardized_Prevalence = results.data.map(row => parseFloat(row.Age_Standardized_Prevalence) || 0);
+        age_standardized_prev_male = results.data.map(row => parseFloat(row.age_standardized_prev_male) || 0);
+        age_standardized_prev_female = results.data.map(row => parseFloat(row.age_standardized_prev_female) || 0);
+        
+        // Create unmet needs chart
+        const cohortsData = {
+            'Cohort 2014': results.data.map(row => parseInt(row['Cohort 2014 U']) || 0),
+            'Cohort 2015': results.data.map(row => parseInt(row['Cohort 2015 U']) || 0),
+            'Cohort 2016': results.data.map(row => parseInt(row['Cohort 2016 U']) || 0),
+            'Cohort 2017': results.data.map(row => parseInt(row['Cohort 2017 U']) || 0),
+            'Cohort 2018': results.data.map(row => parseInt(row['Cohort 2018 U']) || 0),
+            'Cohort 2019': results.data.map(row => parseInt(row['Cohort 2019 U']) || 0),
+            'Cohort 2020': results.data.map(row => parseInt(row['Cohort 2020 U']) || 0),
+            'Cohort 2021': results.data.map(row => parseInt(row['Cohort 2021 U']) || 0),
+            'Cohort 2022': results.data.map(row => parseInt(row['Cohort 2022 U']) || 0),
+        };
 
-// Process historical incidence data
-num_inci = results.data.map(row => parseInt(row.num_inci) || 0);
-male_incidence = results.data.map(row => parseInt(row.num_male_inci) || 0);
-female_incidence = results.data.map(row => parseInt(row.num_female_inci) || 0);
-incidence_rate = results.data.map(row => parseFloat(row.Age_standardized_Incidence) || 0);
-male_incidence_rate = results.data.map(row => parseFloat(row.age_standardized_inci_male) || 0);
-female_incidence_rate = results.data.map(row => parseFloat(row.age_standardized_inci_female) || 0);
+        const cohortDatasets = Object.entries(cohortsData).reduce((acc, [key, values], index) => {
+            const filteredValues = values.map(value => (value !== 0 ? value : null));
+            if (filteredValues.some(value => value !== null)) {
+                acc.push({
+                    label: key,
+                    data: filteredValues,
+                    fill: false,
+                    borderColor: `rgba(${(index + 1) * 40}, ${(index + 1) * 30}, 150, 1)`,
+                    tension: 0.1
+                });
+            }
+            return acc;
+        }, []);
 
-// Process historical prevalence data
-num_unique_prev = results.data.map(row => parseInt(row.num_unique_prev) || 0);
-num_male_patient_prev = results.data.map(row => parseInt(row.num_male_patient_prev) || 0);
-num_female_patient_prev = results.data.map(row => parseInt(row.num_female_patient_prev) || 0);
-Age_Standardized_Prevalence = results.data.map(row => parseFloat(row.Age_Standardized_Prevalence) || 0);
-age_standardized_prev_male = results.data.map(row => parseFloat(row.age_standardized_prev_male) || 0);
-age_standardized_prev_female = results.data.map(row => parseFloat(row.age_standardized_prev_female) || 0);
-
-// Create unmet needs chart
-const cohortsData = {
-'Cohort 2014': results.data.map(row => parseInt(row['Cohort 2014 U']) || 0),
-'Cohort 2015': results.data.map(row => parseInt(row['Cohort 2015 U']) || 0),
-'Cohort 2016': results.data.map(row => parseInt(row['Cohort 2016 U']) || 0),
-'Cohort 2017': results.data.map(row => parseInt(row['Cohort 2017 U']) || 0),
-'Cohort 2018': results.data.map(row => parseInt(row['Cohort 2018 U']) || 0),
-'Cohort 2019': results.data.map(row => parseInt(row['Cohort 2019 U']) || 0),
-'Cohort 2020': results.data.map(row => parseInt(row['Cohort 2020 U']) || 0),
-'Cohort 2021': results.data.map(row => parseInt(row['Cohort 2021 U']) || 0),
-'Cohort 2022': results.data.map(row => parseInt(row['Cohort 2022 U']) || 0),
-};
-
-const cohortDatasets = Object.entries(cohortsData).reduce((acc, [key, values], index) => {
-const filteredValues = values.map(value => (value !== 0 ? value : null));
-if (filteredValues.some(value => value !== null)) {
-acc.push({
-label: key,
-data: filteredValues,
-fill: false,
-borderColor: `rgba(${(index + 1) * 40}, ${(index + 1) * 30}, 150, 1)`,
-tension: 0.1
-});
-}
-return acc;
-}, []);
-
-const ctxCohort = document.getElementById('cohortChart');
-if (ctxCohort) {
-    const cohortChart = new Chart(ctxCohort.getContext('2d'), {
-    type: 'line',
-    data: {
-    labels: years,
-    datasets: cohortDatasets
+        const ctxCohort = document.getElementById('cohortChart').getContext('2d');
+        const cohortChart = new Chart(ctxCohort, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: cohortDatasets
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Patients'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Parse cost data from the CSV file
+        Papa.parse('Depression_Costs_Historical_and_Forecast_2014_2032_v4.csv', {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            complete: function(costResults) {
+                // Process cost data
+                const uniqueYears = [...new Set(costResults.data.map(row => row.Year))].filter(y => y);
+                costYears = uniqueYears.sort((a, b) => a - b);
+                
+                // Split data into historical and forecast
+                historicalYears = costYears.filter(year => year >= 2014 && year <= 2022);
+                costForecastYears = costYears.filter(year => year >= 2023);
+                
+                // Create historical cost arrays
+                const historicalData = costResults.data.filter(row => row.Type === "Historical");
+                
+                historicalAE = historicalYears.map(year => {
+                    const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                historicalIP = historicalYears.map(year => {
+                    const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                historicalOP = historicalYears.map(year => {
+                    const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                // Create forecast cost arrays
+                const forecastData = costResults.data.filter(row => row.Type === "Forecast");
+                
+                forecastAE = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                forecastIP = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                forecastOP = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
+                    return entry ? parseFloat(entry.Cost) : null;
+                });
+                
+                // Get prediction intervals for forecast
+                forecastAELower = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
+                    return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
+                });
+                
+                forecastAEUpper = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
+                    return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
+                });
+                
+                forecastIPLower = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
+                    return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
+                });
+                
+                forecastIPUpper = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
+                    return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
+                });
+                
+                forecastOPLower = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
+                    return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
+                });
+                
+                forecastOPUpper = costForecastYears.map(year => {
+                    const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
+                    return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
+                });
+                
+                // Create cost chart with actual data
+                updateCostChart();
+                
+                // Now load incidence forecast data
+                Papa.parse('Overall_Forecasts_2023_2032_inc.csv', {
+                    download: true,
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(forecastResults) {
+                        // Skip the header row
+                        let data = forecastResults.data.slice(1);
+                        
+                        // Extract forecast years and data
+                        forecastYears = data.map(row => parseInt(row[1])).filter(y => y);
+                        
+                        // Extract forecast data and prediction intervals
+                        num_inci_forecast = data.map(row => parseFloat(row[2]) || 0);
+                        num_inci_lower = data.map(row => parseFloat(row[3]) || 0);
+                        num_inci_upper = data.map(row => parseFloat(row[4]) || 0);
+                        
+                        male_incidence_forecast = data.map(row => parseFloat(row[7]) || 0);
+                        male_incidence_lower = data.map(row => parseFloat(row[8]) || 0);
+                        male_incidence_upper = data.map(row => parseFloat(row[9]) || 0);
+                        
+                        female_incidence_forecast = data.map(row => parseFloat(row[12]) || 0);
+                        female_incidence_lower = data.map(row => parseFloat(row[13]) || 0);
+                        female_incidence_upper = data.map(row => parseFloat(row[14]) || 0);
+                        
+                        incidence_rate_forecast = data.map(row => parseFloat(row[17]) || 0);
+                        incidence_rate_lower = data.map(row => parseFloat(row[18]) || 0);
+                        incidence_rate_upper = data.map(row => parseFloat(row[19]) || 0);
+                        
+                        male_incidence_rate_forecast = data.map(row => parseFloat(row[22]) || 0);
+                        male_incidence_rate_lower = data.map(row => parseFloat(row[23]) || 0);
+                        male_incidence_rate_upper = data.map(row => parseFloat(row[24]) || 0);
+                        
+                        female_incidence_rate_forecast = data.map(row => parseFloat(row[27]) || 0);
+                        female_incidence_rate_lower = data.map(row => parseFloat(row[28]) || 0);
+                        female_incidence_rate_upper = data.map(row => parseFloat(row[29]) || 0);
+                        
+                        // Update incidence charts with forecast data
+                        updateIncidenceCharts();
+                        
+                        // Now load prevalence forecast data
+                        Papa.parse('Overall_Forecasts_2023_2032_prev.csv', {
+                            download: true,
+                            header: false,
+                            skipEmptyLines: true,
+                            complete: function(prevForecastResults) {
+                                // Skip the header row
+                                let prevData = prevForecastResults.data.slice(1);
+                                
+                                // Extract forecast years and data
+                                prevForecastYears = prevData.map(row => parseInt(row[1])).filter(y => y);
+                                
+                                // Extract prevalence forecast data and prediction intervals
+                                totalPrevForecast = prevData.map(row => parseFloat(row[2]) || 0);
+                                totalPrevLower = prevData.map(row => parseFloat(row[3]) || 0);
+                                totalPrevUpper = prevData.map(row => parseFloat(row[4]) || 0);
+                                
+                                malePrevForecast = prevData.map(row => parseFloat(row[7]) || 0);
+                                malePrevLower = prevData.map(row => parseFloat(row[8]) || 0);
+                                malePrevUpper = prevData.map(row => parseFloat(row[9]) || 0);
+                                
+                                femalePrevForecast = prevData.map(row => parseFloat(row[12]) || 0);
+                                femalePrevLower = prevData.map(row => parseFloat(row[13]) || 0);
+                                femalePrevUpper = prevData.map(row => parseFloat(row[14]) || 0);
+                                
+                                totalPrevRateForecast = prevData.map(row => parseFloat(row[17]) || 0);
+                                totalPrevRateLower = prevData.map(row => parseFloat(row[18]) || 0);
+                                totalPrevRateUpper = prevData.map(row => parseFloat(row[19]) || 0);
+                                
+                                malePrevRateForecast = prevData.map(row => parseFloat(row[22]) || 0);
+                                malePrevRateLower = prevData.map(row => parseFloat(row[23]) || 0);
+                                malePrevRateUpper = prevData.map(row => parseFloat(row[24]) || 0);
+                                
+                                femalePrevRateForecast = prevData.map(row => parseFloat(row[27]) || 0);
+                                femalePrevRateLower = prevData.map(row => parseFloat(row[28]) || 0);
+                                femalePrevRateUpper = prevData.map(row => parseFloat(row[29]) || 0);
+                                
+                                // Update prevalence charts with forecast data
+                                updatePrevalenceCharts();
+                                
+                                // Create KM curve data
+                                createKMCurve();
+                            },
+                            error: function(error) {
+                                console.error("Error loading prevalence forecast data:", error);
+                            }
+                        });
+                    },
+                    error: function(error) {
+                        console.error("Error loading incidence forecast data:", error);
+                    }
+                });
+            },
+            error: function(error) {
+                console.error("Error loading cost data:", error);
+            }
+        });
     },
-    options: {
-    ...getResponsiveChartOptions('Number of Patients'),
-    scales: {
-    ...getResponsiveChartOptions('Number of Patients').scales,
-    y: {
-    ...getResponsiveChartOptions('Number of Patients').scales.y,
-    beginAtZero: true,
-    title: {
-    display: true,
-    text: 'Number of Patients',
-    font: {
-    size: window.innerWidth <= 768 ? 10 : 12
+    error: function(error) {
+        console.error("Error loading historical data:", error);
     }
-    }
-    },
-    x: {
-    ...getResponsiveChartOptions('Number of Patients').scales.x,
-    title: {
-    display: true,
-    text: 'Year',
-    font: {
-    size: window.innerWidth <= 768 ? 10 : 12
-    }
-    }
-    }
-    }
-    }
-    });
-}
-
-// Parse cost data from the CSV file
-Papa.parse('Depression_Costs_Historical_and_Forecast_2014_2032_v4.csv', {
-download: true,
-header: true,
-dynamicTyping: true,
-complete: function(costResults) {
-// Process cost data
-const uniqueYears = [...new Set(costResults.data.map(row => row.Year))].filter(y => y);
-costYears = uniqueYears.sort((a, b) => a - b);
-
-// Split data into historical and forecast
-historicalYears = costYears.filter(year => year >= 2014 && year <= 2022);
-costForecastYears = costYears.filter(year => year >= 2023);
-
-// Create historical cost arrays
-const historicalData = costResults.data.filter(row => row.Type === "Historical");
-
-historicalAE = historicalYears.map(year => {
-const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-historicalIP = historicalYears.map(year => {
-const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-historicalOP = historicalYears.map(year => {
-const entry = historicalData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-// Create forecast cost arrays
-const forecastData = costResults.data.filter(row => row.Type === "Forecast");
-
-forecastAE = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-forecastIP = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-forecastOP = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
-return entry ? parseFloat(entry.Cost) : null;
-});
-
-// Get prediction intervals for forecast
-forecastAELower = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
-return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
-});
-
-forecastAEUpper = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "AE_Cost");
-return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
-});
-
-forecastIPLower = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
-return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
-});
-
-forecastIPUpper = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "IP_Total");
-return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
-});
-
-forecastOPLower = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
-return entry && entry.lower_PI ? parseFloat(entry.lower_PI) : null;
-});
-
-forecastOPUpper = costForecastYears.map(year => {
-const entry = forecastData.find(row => row.Year === year && row.Cost_Type === "OP_Total");
-return entry && entry.upper_PI ? parseFloat(entry.upper_PI) : null;
-});
-
-// Create cost chart with actual data
-updateCostChart();
-
-// Now load incidence forecast data
-Papa.parse('Overall_Forecasts_2023_2032_inc.csv', {
-download: true,
-header: false,
-skipEmptyLines: true,
-complete: function(forecastResults) {
-// Skip the header row
-let data = forecastResults.data.slice(1);
-
-// Extract forecast years and data
-forecastYears = data.map(row => parseInt(row[1])).filter(y => y);
-
-// Extract forecast data and prediction intervals
-num_inci_forecast = data.map(row => parseFloat(row[2]) || 0);
-num_inci_lower = data.map(row => parseFloat(row[3]) || 0);
-num_inci_upper = data.map(row => parseFloat(row[4]) || 0);
-
-male_incidence_forecast = data.map(row => parseFloat(row[7]) || 0);
-male_incidence_lower = data.map(row => parseFloat(row[8]) || 0);
-male_incidence_upper = data.map(row => parseFloat(row[9]) || 0);
-
-female_incidence_forecast = data.map(row => parseFloat(row[12]) || 0);
-female_incidence_lower = data.map(row => parseFloat(row[13]) || 0);
-female_incidence_upper = data.map(row => parseFloat(row[14]) || 0);
-
-incidence_rate_forecast = data.map(row => parseFloat(row[17]) || 0);
-incidence_rate_lower = data.map(row => parseFloat(row[18]) || 0);
-incidence_rate_upper = data.map(row => parseFloat(row[19]) || 0);
-
-male_incidence_rate_forecast = data.map(row => parseFloat(row[22]) || 0);
-male_incidence_rate_lower = data.map(row => parseFloat(row[23]) || 0);
-male_incidence_rate_upper = data.map(row => parseFloat(row[24]) || 0);
-
-female_incidence_rate_forecast = data.map(row => parseFloat(row[27]) || 0);
-female_incidence_rate_lower = data.map(row => parseFloat(row[28]) || 0);
-female_incidence_rate_upper = data.map(row => parseFloat(row[29]) || 0);
-
-// Update incidence charts with forecast data
-updateIncidenceCharts();
-
-// Now load prevalence forecast data
-Papa.parse('Overall_Forecasts_2023_2032_prev.csv', {
-download: true,
-header: false,
-skipEmptyLines: true,
-complete: function(prevForecastResults) {
-// Skip the header row
-let prevData = prevForecastResults.data.slice(1);
-
-// Extract forecast years and data
-prevForecastYears = prevData.map(row => parseInt(row[1])).filter(y => y);
-
-// Extract prevalence forecast data and prediction intervals
-totalPrevForecast = prevData.map(row => parseFloat(row[2]) || 0);
-totalPrevLower = prevData.map(row => parseFloat(row[3]) || 0);
-totalPrevUpper = prevData.map(row => parseFloat(row[4]) || 0);
-
-malePrevForecast = prevData.map(row => parseFloat(row[7]) || 0);
-malePrevLower = prevData.map(row => parseFloat(row[8]) || 0);
-malePrevUpper = prevData.map(row => parseFloat(row[9]) || 0);
-
-femalePrevForecast = prevData.map(row => parseFloat(row[12]) || 0);
-femalePrevLower = prevData.map(row => parseFloat(row[13]) || 0);
-femalePrevUpper = prevData.map(row => parseFloat(row[14]) || 0);
-
-totalPrevRateForecast = prevData.map(row => parseFloat(row[17]) || 0);
-totalPrevRateLower = prevData.map(row => parseFloat(row[18]) || 0);
-totalPrevRateUpper = prevData.map(row => parseFloat(row[19]) || 0);
-
-malePrevRateForecast = prevData.map(row => parseFloat(row[22]) || 0);
-malePrevRateLower = prevData.map(row => parseFloat(row[23]) || 0);
-malePrevRateUpper = prevData.map(row => parseFloat(row[24]) || 0);
-
-femalePrevRateForecast = prevData.map(row => parseFloat(row[27]) || 0);
-femalePrevRateLower = prevData.map(row => parseFloat(row[28]) || 0);
-femalePrevRateUpper = prevData.map(row => parseFloat(row[29]) || 0);
-
-// Update prevalence charts with forecast data
-updatePrevalenceCharts();
-
-// Create KM curve data
-createKMCurve();
-},
-error: function(error) {
-console.error("Error loading prevalence forecast data:", error);
-}
-});
-},
-error: function(error) {
-console.error("Error loading incidence forecast data:", error);
-}
-});
-},
-error: function(error) {
-console.error("Error loading cost data:", error);
-}
-});
-},
-error: function(error) {
-console.error("Error loading historical data:", error);
-}
 });
 
 function zoomSankey() {
-const sankeyDiagram = document.getElementById('sankeyDiagram');
-if (sankeyDiagram) {
-sankeyDiagram.style.transform = 'scale(1.5)';
-sankeyDiagram.style.transformOrigin = 'center';
-}
+    const sankeyDiagram = document.getElementById('sankeyDiagram');
+    if (sankeyDiagram) {
+        sankeyDiagram.style.transform = 'scale(1.5)';
+        sankeyDiagram.style.transformOrigin = 'center';
+    }
 }
 
 function resetSankey() {
-const sankeyDiagram = document.getElementById('sankeyDiagram');
-if (sankeyDiagram) {
-sankeyDiagram.style.transform = 'scale(1)';
-}
+    const sankeyDiagram = document.getElementById('sankeyDiagram');
+    if (sankeyDiagram) {
+        sankeyDiagram.style.transform = 'scale(1)';
+    }
 }
 </script>
 </body>
