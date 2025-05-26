@@ -86,19 +86,25 @@ button.active {
     background-color: #d3d3d3;
 }
 
-canvas {
-    max-width: 100% !important;
-    height: auto !important;
-    margin: auto;
-    display: block;
-}
-
 .chart-wrapper {
     width: 100%;
-    max-width: 100%;
+    max-width: 800px;
     margin: 0 auto;
     padding: 0 10px;
-    overflow: hidden;
+    position: relative;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
 #kmChart {
@@ -229,6 +235,10 @@ iframe {
         max-width: 90%;
     }
     
+    .chart-container {
+        height: 300px;
+    }
+    
     .legend-text {
         font-size: 10px;
     }
@@ -251,12 +261,6 @@ iframe {
     /* Force charts to be responsive */
     .chart-wrapper {
         padding: 0 5px;
-    }
-    
-    canvas {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 250px !important;
     }
     
     /* SVG charts responsive */
@@ -283,6 +287,10 @@ iframe {
         min-width: 70px;
     }
     
+    .chart-container {
+        height: 250px;
+    }
+    
     .legend-text {
         font-size: 9px;
     }
@@ -290,10 +298,6 @@ iframe {
     .legend-item {
         font-size: 9px;
         margin: 1px 2px;
-    }
-    
-    canvas {
-        height: 200px !important;
     }
     
     #chart {
@@ -321,11 +325,15 @@ iframe {
 </div>
 <div id="incidenceChartContainer" class="chart-wrapper">
 <div id="incidenceLegend" class="custom-legend"></div>
+<div class="chart-container">
 <canvas id="incidenceChart"></canvas>
 </div>
-<div id="rateChartContainer" class="chart-wrapper" >
+</div>
+<div id="rateChartContainer" class="chart-wrapper" style="display: none;">
 <div id="rateLegend" class="custom-legend"></div>
+<div class="chart-container">
 <canvas id="rateChart"></canvas>
+</div>
 </div>
 </div>
 
@@ -337,17 +345,24 @@ iframe {
 </div>
 <div id="prevalenceNumberChartContainer" class="chart-wrapper">
 <div id="prevalenceNumberLegend" class="custom-legend"></div>
+<div class="chart-container">
 <canvas id="prevalenceNumberChart"></canvas>
 </div>
-<div id="prevalenceRateChartContainer" class="chart-wrapper" >
+</div>
+<div id="prevalenceRateChartContainer" class="chart-wrapper" style="display: none;">
 <div id="prevalenceRateLegend" class="custom-legend"></div>
+<div class="chart-container">
 <canvas id="prevalenceRateChart"></canvas>
+</div>
 </div>
 </div>
 
 <div id="chart-container" class="tab">
 <h2>One-year costs of care under Hospital Authority among prevalant patients</h2>
+<div id="cost-legend-container"></div>
+<div class="chart-container">
 <canvas id="myChart"></canvas>
+</div>
 <!-- <div class="button-container">
 <button onclick="toggleData('ae')">Toggle AE Cost</button>
 <button onclick="toggleData('ip')">Toggle IP Cost</button>
@@ -357,7 +372,9 @@ iframe {
 
 <div id="cohortData" class="tab">
 <h2>Patients in Unmet Needs with Treatment-Resistant Depression by Year</h2>
+<div class="chart-container">
 <canvas id="cohortChart"></canvas>
+</div>
 </div>
 
 <div id="kmChartContainer" class="tab">
@@ -490,13 +507,13 @@ male: true,
 female: true
 };
 
-// Add responsive chart options
+// Add responsive chart options with fixed maintainAspectRatio
 function getResponsiveChartOptions(yAxisLabel) {
     const isMobile = window.innerWidth <= 768;
     
     return {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: false, // This is crucial to prevent height growth
         plugins: {
             legend: {
                 display: false
@@ -557,28 +574,7 @@ buttons[i].classList.remove("active");
 
 document.getElementById(tabName).classList.add('active');
 evt.currentTarget.classList.add("active");
-
-// Resize charts when switching tabs for mobile
-setTimeout(() => {
-    if (window.innerWidth <= 768) {
-        resizeCharts();
-    }
-}, 100);
 }
-
-function resizeCharts() {
-    const charts = [incidenceChartObj, rateChartObj, prevalenceNumberChart, prevalenceRateChart, myChart];
-    charts.forEach(chart => {
-        if (chart) {
-            chart.resize();
-        }
-    });
-}
-
-// Add window resize listener
-window.addEventListener('resize', function() {
-    setTimeout(resizeCharts, 100);
-});
 
 function toggleChart(type, evt) {
 const incidenceChartContainer = document.getElementById('incidenceChartContainer');
@@ -610,13 +606,6 @@ button.classList.remove('active');
 }
 });
 }
-
-// Resize charts after toggle
-setTimeout(() => {
-    if (window.innerWidth <= 768) {
-        resizeCharts();
-    }
-}, 100);
 }
 
 function togglePrevalence(type, evt) {
@@ -649,13 +638,6 @@ button.classList.remove('active');
 }
 });
 }
-
-// Resize charts after toggle
-setTimeout(() => {
-    if (window.innerWidth <= 768) {
-        resizeCharts();
-    }
-}, 100);
 }
 
 function adjustChartAxis(chart) {
@@ -691,6 +673,11 @@ chart.update();
 // Function to create a custom HTML legend
 function createCustomLegend(chart, legendElementId, isRate = false) {
 const legendElement = document.getElementById(legendElementId);
+if (!legendElement) {
+    console.error(`Legend element with id ${legendElementId} not found`);
+    return;
+}
+
 legendElement.innerHTML = '';
 
 // Create first row for historical data
@@ -925,8 +912,13 @@ legendElement.appendChild(forecastRow);
 
 function updateIncidenceCharts() {
 // Get chart contexts
-const ctx1 = document.getElementById('incidenceChart').getContext('2d');
-const ctx2 = document.getElementById('rateChart').getContext('2d');
+const ctx1 = document.getElementById('incidenceChart');
+const ctx2 = document.getElementById('rateChart');
+
+if (!ctx1 || !ctx2) {
+    console.error('Canvas elements not found');
+    return;
+}
 
 // Create combined data arrays
 const totalCasesData = [];
@@ -1012,7 +1004,7 @@ incidenceChartObj.destroy();
 }
 
 // Create new incidence chart with responsive options
-incidenceChartObj = new Chart(ctx1, {
+incidenceChartObj = new Chart(ctx1.getContext('2d'), {
 type: 'line',
 data: {
 labels: allYears,
@@ -1296,7 +1288,7 @@ rateChartObj.destroy();
 }
 
 // Create new rate chart with responsive options
-rateChartObj = new Chart(ctx2, {
+rateChartObj = new Chart(ctx2.getContext('2d'), {
 type: 'line',
 data: {
 labels: allYears,
@@ -1511,8 +1503,13 @@ toggleChart('incidence', null);
 // Function to update prevalence charts with forecast data
 function updatePrevalenceCharts() {
 // Get chart contexts
-const ctxNumber = document.getElementById('prevalenceNumberChart').getContext('2d');
-const ctxRate = document.getElementById('prevalenceRateChart').getContext('2d');
+const ctxNumber = document.getElementById('prevalenceNumberChart');
+const ctxRate = document.getElementById('prevalenceRateChart');
+
+if (!ctxNumber || !ctxRate) {
+    console.error('Prevalence canvas elements not found');
+    return;
+}
 
 // Create combined data arrays for prevalence number chart
 const totalPrevData = [];
@@ -1598,7 +1595,7 @@ prevalenceNumberChart.destroy();
 }
 
 // Create new prevalence number chart with responsive options
-prevalenceNumberChart = new Chart(ctxNumber, {
+prevalenceNumberChart = new Chart(ctxNumber.getContext('2d'), {
 type: 'line',
 data: {
 labels: allYears,
@@ -1872,7 +1869,7 @@ totalRateLowerData.push(totalPrevRateLower[i]);
 totalRateUpperData.push(totalPrevRateUpper[i]);
 maleRateLowerData.push(malePrevRateLower[i]);
 maleRateUpperData.push(malePrevRateUpper[i]);
-femalePrevRateLowerData.push(femalePrevRateLower[i]);
+femaleRateLowerData.push(femalePrevRateLower[i]);
 femaleRateUpperData.push(femalePrevRateUpper[i]);
 }
 
@@ -1882,7 +1879,7 @@ prevalenceRateChart.destroy();
 }
 
 // Create new prevalence rate chart with responsive options
-prevalenceRateChart = new Chart(ctxRate, {
+prevalenceRateChart = new Chart(ctxRate.getContext('2d'), {
 type: 'line',
 data: {
 labels: allYears,
@@ -2096,7 +2093,12 @@ togglePrevalence('number', null);
 
 function updateCostChart() {
 // Get the context for the cost chart
-const ctx = document.getElementById('myChart').getContext('2d');
+const ctx = document.getElementById('myChart');
+
+if (!ctx) {
+    console.error('Cost chart canvas not found');
+    return;
+}
 
 // If a chart already exists, destroy it
 if (myChart) {
@@ -2369,13 +2371,17 @@ forecastRow.appendChild(legendItem);
 legendContainer.appendChild(historicalRow);
 legendContainer.appendChild(forecastRow);
 
-// Add the legend to the DOM before the canvas
-const chartContainer = document.getElementById('chart-container');
-const canvasElement = document.getElementById('myChart');
-chartContainer.insertBefore(legendContainer, canvasElement);
+// Add the legend to the cost-legend-container
+const legendContainerDiv = document.getElementById('cost-legend-container');
+if (legendContainerDiv) {
+    legendContainerDiv.appendChild(legendContainer);
+} else {
+    console.error('cost-legend-container not found');
+    return;
+}
 
 // Create the chart
-myChart = new Chart(ctx, config);
+myChart = new Chart(ctx.getContext('2d'), config);
 
 // Function to create a legend item
 function createLegendItem(label, color, datasetIndex, isForecast, pattern) {
@@ -2741,41 +2747,43 @@ tension: 0.1
 return acc;
 }, []);
 
-const ctxCohort = document.getElementById('cohortChart').getContext('2d');
-const cohortChart = new Chart(ctxCohort, {
-type: 'line',
-data: {
-labels: years,
-datasets: cohortDatasets
-},
-options: {
-...getResponsiveChartOptions('Number of Patients'),
-scales: {
-...getResponsiveChartOptions('Number of Patients').scales,
-y: {
-...getResponsiveChartOptions('Number of Patients').scales.y,
-beginAtZero: true,
-title: {
-display: true,
-text: 'Number of Patients',
-font: {
-size: window.innerWidth <= 768 ? 10 : 12
+const ctxCohort = document.getElementById('cohortChart');
+if (ctxCohort) {
+    const cohortChart = new Chart(ctxCohort.getContext('2d'), {
+    type: 'line',
+    data: {
+    labels: years,
+    datasets: cohortDatasets
+    },
+    options: {
+    ...getResponsiveChartOptions('Number of Patients'),
+    scales: {
+    ...getResponsiveChartOptions('Number of Patients').scales,
+    y: {
+    ...getResponsiveChartOptions('Number of Patients').scales.y,
+    beginAtZero: true,
+    title: {
+    display: true,
+    text: 'Number of Patients',
+    font: {
+    size: window.innerWidth <= 768 ? 10 : 12
+    }
+    }
+    },
+    x: {
+    ...getResponsiveChartOptions('Number of Patients').scales.x,
+    title: {
+    display: true,
+    text: 'Year',
+    font: {
+    size: window.innerWidth <= 768 ? 10 : 12
+    }
+    }
+    }
+    }
+    }
+    });
 }
-}
-},
-x: {
-...getResponsiveChartOptions('Number of Patients').scales.x,
-title: {
-display: true,
-text: 'Year',
-font: {
-size: window.innerWidth <= 768 ? 10 : 12
-}
-}
-}
-}
-}
-});
 
 // Parse cost data from the CSV file
 Papa.parse('Depression_Costs_Historical_and_Forecast_2014_2032_v4.csv', {
