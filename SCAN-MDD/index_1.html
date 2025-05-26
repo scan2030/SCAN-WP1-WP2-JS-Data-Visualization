@@ -13,15 +13,7 @@
 <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
         }
-        
-        h2 {
-            font-size: 1.5rem;
-            margin: 10px 0;
-        }
-        
         .tab {
             visibility: hidden;
             height: 0;
@@ -34,86 +26,54 @@
             opacity: 1;
         }
         .tab-button {
-            padding: 8px 12px;
+            padding: 10px;
             cursor: pointer;
             background-color: #f1f1f1;
             border: none;
             border-bottom: 2px solid transparent;
-            font-size: 14px;
         }
         .tab-button.active {
             border-bottom: 2px solid blue;
             background-color: #e7e7e7;
         }
-        
         #chart-container {
-            width: 100%;
-            max-width: 800px;
+            width: 80%;
             margin: auto;
         }
-        
         .button-container {
             text-align: center;
-            margin: 20px 0;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px;
+            margin: 20px;
         }
-        
         button {
             margin: 5px;
         }
         button.active {
             background-color: #d3d3d3;
         }
-        
-        /* Responsive canvas container */
+        canvas {
+            max-width: 800px;
+            height:  400px;
+            margin: auto;
+        }
         .chart-wrapper {
-            position: relative;
-            width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 10px;
         }
-        
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 0;
-            padding-bottom: 50%; /* 2:1 Aspect Ratio */
-            min-height: 300px;
-        }
-        
-        canvas {
-            position: absolute !important;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        /* Special handling for KM chart */
-        #kmChartContainer {
-            padding: 0 10px;
-        }
-        
-        #chart {
-            width: 100%;
-            height: auto;
-            max-width: 800px;
+
+        #kmChart {
+            width: 800px;
+            height: 400px;
             margin: auto;
             display: block;
         }
-        
         #sankeyContainer {
             text-align: center;
             margin: 20px;
         }
         iframe {
             width: 100%;
-            height: 600px;
-            border: none;
+            height: 600px; /* Adjust height as needed */
+            border: none; /* Remove border */
         }
         
         /* Custom legend styles */
@@ -123,28 +83,27 @@
             justify-content: center;
             margin: 10px auto;
             max-width: 800px;
-            padding: 0 10px;
         }
 
+        
         .legend-text {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            font-weight: 530;
-            color: #545151;
+            font-family: Arial, sans-serif; /* Change font family */
+            font-size: 12px;               /* Change font size */
+            font-weight: 530;              /* Control font weight (normal=400, bold=700) */
+            color: #545151;                /* Change text color */
         }
 
+        
         .legend-row {
             display: flex;
             justify-content: center;
             margin: 5px 0;
-            flex-wrap: wrap;
-            gap: 10px;
         }
         
         .legend-item {
             display: flex;
             align-items: center;
-            margin: 0 5px;
+            margin: 0 10px;
             cursor: pointer;
         }
         
@@ -162,48 +121,11 @@
             height: 15px;
             margin-right: 5px;
             border-radius: 2px;
-            flex-shrink: 0;
         }
         
         .legend-dash {
             border-top-style: dashed;
             border-top-width: 2px;
-        }
-        
-        /* Mobile responsive styles */
-        @media (max-width: 768px) {
-            .tab-button {
-                font-size: 12px;
-                padding: 6px 8px;
-            }
-            
-            h2 {
-                font-size: 1.2rem;
-            }
-            
-            .legend-text {
-                font-size: 11px;
-            }
-            
-            .canvas-container {
-                padding-bottom: 75%; /* Taller aspect ratio for mobile */
-                min-height: 250px;
-            }
-            
-            #chart {
-                height: 300px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .tab-button {
-                font-size: 11px;
-                padding: 5px 6px;
-            }
-            
-            .canvas-container {
-                padding-bottom: 100%; /* Square aspect ratio for very small screens */
-            }
         }
     </style>
 </head>
@@ -216,6 +138,7 @@
     <button class="tab-button" onclick="openTab(event, 'cohortData')">Unmet Needs</button>
     <button class="tab-button" onclick="openTab(event, 'kmChartContainer')">Survival Probability</button>
     <!--<button class="tab-button" onclick="openTab(event, 'sankeyContainer')">Treatment Pathway </button> -->
+
 </div>
 
 <div id="incidence" class="tab active">
@@ -226,15 +149,11 @@
     </div>
     <div id="incidenceChartContainer" class="chart-wrapper">
         <div id="incidenceLegend" class="custom-legend"></div>
-        <div class="canvas-container">
-            <canvas id="incidenceChart"></canvas>
-        </div>
+        <canvas id="incidenceChart"></canvas>
     </div>
-    <div id="rateChartContainer" class="chart-wrapper" style="display: none;">
+    <div id="rateChartContainer" class="chart-wrapper" >
         <div id="rateLegend" class="custom-legend"></div>
-        <div class="canvas-container">
-            <canvas id="rateChart"></canvas>
-        </div>
+        <canvas id="rateChart"></canvas>
     </div>
 </div>
 
@@ -246,35 +165,47 @@
     </div>
     <div id="prevalenceNumberChartContainer" class="chart-wrapper">
         <div id="prevalenceNumberLegend" class="custom-legend"></div>
-        <div class="canvas-container">
-            <canvas id="prevalenceNumberChart"></canvas>
-        </div>
+        <canvas id="prevalenceNumberChart"></canvas>
     </div>
-    <div id="prevalenceRateChartContainer" class="chart-wrapper" style="display: none;">
+    <div id="prevalenceRateChartContainer" class="chart-wrapper" >
         <div id="prevalenceRateLegend" class="custom-legend"></div>
-        <div class="canvas-container">
-            <canvas id="prevalenceRateChart"></canvas>
-        </div>
+        <canvas id="prevalenceRateChart"></canvas>
     </div>
 </div>
 
 <div id="chart-container" class="tab">
     <h2>One-year costs of care under Hospital Authority among prevalant patients</h2>
-    <div class="canvas-container">
-        <canvas id="myChart"></canvas>
-    </div>
+    <canvas id="myChart"></canvas>
+    <!-- <div class="button-container">
+        <button onclick="toggleData('ae')">Toggle AE Cost</button>
+        <button onclick="toggleData('ip')">Toggle IP Cost</button>
+        <button onclick="toggleData('op')">Toggle OP Cost</button>
+    </div> -->
 </div>
 
 <div id="cohortData" class="tab">
     <h2>Patients in Unmet Needs with Treatment-Resistant Depression by Year</h2>
-    <div class="canvas-container">
-        <canvas id="cohortChart"></canvas>
-    </div>
+    <canvas id="cohortChart"></canvas>
 </div>
 
 <div id="kmChartContainer" class="tab">
     <h2>Kaplan-Meier Survival Curves for Incident Cohort (2014 - 2022)</h2>
-    <svg id="chart" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="controls">
+        <!-- <div class="checkboxes">
+            <label><input type="checkbox" value="cohort_2014" checked> Cohort 2014</label>
+            <label><input type="checkbox" value="cohort_2015" checked> Cohort 2015</label>
+            <label><input type="checkbox" value="cohort_2016" checked> Cohort 2016</label>
+            <label><input type="checkbox" value="cohort_2017" checked> Cohort 2017</label>
+            <label><input type="checkbox" value="cohort_2018" checked> Cohort 2018</label>
+            <label><input type="checkbox" value="cohort_2019" checked> Cohort 2019</label>
+            <label><input type="checkbox" value="cohort_2020" checked> Cohort 2020</label>
+            <label><input type="checkbox" value="cohort_2021" checked> Cohort 2021</label>
+            <label><input type="checkbox" value="cohort_2022" checked> Cohort 2022</label>
+        </div>
+        <button id="zoomButton">Zoom to 100%-90% Survival</button>
+        <button id="resetButton">Reset Zoom</button> -->
+    </div>
+    <svg id="chart" width="800" height="400"></svg>
 </div>
 
 <!--<div id="sankeyContainer" class="tab">
@@ -400,11 +331,6 @@ function openTab(evt, tabName) {
 
     document.getElementById(tabName).classList.add('active');
     evt.currentTarget.classList.add("active");
-    
-    // Trigger resize for charts when tab becomes visible
-    setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-    }, 100);
 }
 
 function toggleChart(type, evt) {
@@ -736,108 +662,6 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
     legendElement.appendChild(forecastRow);
 }
 
-// Update chart options for better responsiveness
-function getResponsiveChartOptions(yAxisLabel) {
-    return {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false // Disable built-in legend
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const label = context.dataset.label || '';
-                        if (label.includes('PI')) return null;
-                        
-                        const value = context.parsed.y || 0;
-                        
-                        // For forecast points, add prediction interval to tooltip
-                        if (label.includes('Forecast') && value) {
-                            let lowerValue, upperValue;
-                            
-                            if (label.includes('Total')) {
-                                // Find the indices for the prediction intervals
-                                const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                
-                                if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                    lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                    upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                }
-                            } else if (label.includes('Male')) {
-                                const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-                                const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-                                
-                                if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                    lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                    upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                }
-                            } else if (label.includes('Female')) {
-                                const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-                                const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-                                
-                                if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                    lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                    upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                }
-                            }
-                            
-                            if (lowerValue && upperValue) {
-                                if (yAxisLabel.includes('rate')) {
-                                    return [
-                                        `${label}: ${value.toFixed(2)}`,
-                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-                                    ];
-                                } else {
-                                    return [
-                                        `${label}: ${Math.round(value)}`,
-                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-                                    ];
-                                }
-                            }
-                        }
-                        
-                        if (yAxisLabel.includes('rate')) {
-                            return `${label}: ${value.toFixed(2)}`;
-                        } else {
-                            return `${label}: ${Math.round(value)}`;
-                        }
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: yAxisLabel
-                },
-                ticks: {
-                    font: {
-                        size: window.innerWidth < 768 ? 10 : 12
-                    }
-                }
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Year'
-                },
-                ticks: {
-                    font: {
-                        size: window.innerWidth < 768 ? 10 : 12
-                    },
-                    maxRotation: 45,
-                    minRotation: 45
-                }
-            }
-        }
-    };
-}
-
 function updateIncidenceCharts() {
     // Get chart contexts
     const ctx1 = document.getElementById('incidenceChart').getContext('2d');
@@ -1072,7 +896,80 @@ function updateIncidenceCharts() {
                 }
             ]
         },
-        options: getResponsiveChartOptions('Number of incident cases')
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${Math.round(value)}`,
+                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${Math.round(value)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of incident cases'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
     });
     
     // Create custom legend for incidence chart
@@ -1299,7 +1196,80 @@ function updateIncidenceCharts() {
                 }
             ]
         },
-        options: getResponsiveChartOptions('Age-standardized incidence rate (per 10,000 persons)')
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${value.toFixed(2)}`,
+                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${value.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Age-standardized prevalence rate (per 10,000 persons)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
     });
     
     // Create custom legend for rate chart
@@ -1544,7 +1514,80 @@ function updatePrevalenceCharts() {
                 }
             ]
         },
-        options: getResponsiveChartOptions('Number of prevalent cases')
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${Math.round(value)}`,
+                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${Math.round(value)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of prevalent cases'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
     });
     
     // Create custom legend for prevalence number chart
@@ -1771,7 +1814,80 @@ function updatePrevalenceCharts() {
                 }
             ]
         },
-        options: getResponsiveChartOptions('Age-standardized prevalence rate (per 10,000 persons)')
+        options: {
+            plugins: {
+                legend: {
+                    display: false // Disable built-in legend
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            if (label.includes('PI')) return null;
+                            
+                            const value = context.parsed.y || 0;
+                            
+                            // For forecast points, add prediction interval to tooltip
+                            if (label.includes('Forecast') && value) {
+                                let lowerValue, upperValue;
+                                
+                                if (label.includes('Total')) {
+                                    // Find the indices for the prediction intervals
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Male')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                } else if (label.includes('Female')) {
+                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
+                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
+                                    
+                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
+                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
+                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    }
+                                }
+                                
+                                if (lowerValue && upperValue) {
+                                    return [
+                                        `${label}: ${value.toFixed(2)}`,
+                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
+                                    ];
+                                }
+                            }
+                            
+                            return `${label}: ${value.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Age-standardized incidence rate (per 10,000 persons)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    //max: years.length - 1 // Initially show only historical years
+                }
+            }
+        }
     });
     
     // Create custom legend for prevalence rate chart
@@ -1898,8 +2014,6 @@ function updateCostChart() {
         type: 'bar',
         data: costData,
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false // Hide the default legend, we'll create a custom one
@@ -1959,6 +2073,7 @@ function updateCostChart() {
                     }
                 }
             },
+            responsive: true,
             scales: {
                 x: {
                     stacked: true,
@@ -1968,12 +2083,7 @@ function updateCostChart() {
                     },
                     offset: true,
                     ticks: {
-                        align: 'center',
-                        font: {
-                            size: window.innerWidth < 768 ? 10 : 12
-                        },
-                        maxRotation: 45,
-                        minRotation: 45
+                        align: 'center'
                     }
                 },
                 y: {
@@ -1986,9 +2096,6 @@ function updateCostChart() {
                         callback: function(value) {
                             // Format y-axis labels to millions
                             return `${(value / 1000000).toFixed(0)}M`;
-                        },
-                        font: {
-                            size: window.innerWidth < 768 ? 10 : 12
                         }
                     }
                 }
@@ -2010,16 +2117,12 @@ function updateCostChart() {
     historicalRow.style.display = 'flex';
     historicalRow.style.justifyContent = 'center';
     historicalRow.style.margin = '5px 0';
-    historicalRow.style.flexWrap = 'wrap';
-    historicalRow.style.gap = '10px';
     
     // Create the second row (Forecast)
     const forecastRow = document.createElement('div');
     forecastRow.style.display = 'flex';
     forecastRow.style.justifyContent = 'center';
     forecastRow.style.margin = '5px 0';
-    forecastRow.style.flexWrap = 'wrap';
-    forecastRow.style.gap = '10px';
     
     // Legend data
     const legendItems = [
@@ -2051,8 +2154,8 @@ function updateCostChart() {
     
     // Add the legend to the DOM before the canvas
     const chartContainer = document.getElementById('chart-container');
-    const canvasContainer = document.querySelector('#chart-container .canvas-container');
-    chartContainer.insertBefore(legendContainer, canvasContainer);
+    const canvasElement = document.getElementById('myChart');
+    chartContainer.insertBefore(legendContainer, canvasElement);
     
     // Create the chart
     myChart = new Chart(ctx, config);
@@ -2062,7 +2165,7 @@ function updateCostChart() {
         const item = document.createElement('div');
         item.style.display = 'flex';
         item.style.alignItems = 'center';
-        item.style.margin = '0 5px';
+        item.style.margin = '0 10px';
         item.style.cursor = 'pointer';
         
         // Color box
@@ -2104,7 +2207,7 @@ function updateCostChart() {
         // Text label
         const textSpan = document.createElement('span');
         textSpan.style.fontFamily = 'Arial, sans-serif';
-        textSpan.style.fontSize = window.innerWidth < 768 ? '11px' : '12px';
+        textSpan.style.fontSize = '12px';
         textSpan.style.fontWeight = '530';
         textSpan.style.color = '#545151';
         textSpan.textContent = label;
@@ -2162,29 +2265,11 @@ function createKMCurve() {
             });
         })
     ]).then(([sexData, totalData]) => {
-        // Set up SVG canvas with responsive viewBox
+        // Set up SVG canvas
         const svg = d3.select("#chart");
-        
-        // Get container dimensions
-        const containerWidth = document.getElementById('kmChartContainer').offsetWidth - 20; // Subtract padding
-        const isMobile = containerWidth < 768;
-        
-        // Set dimensions based on device type
-        const svgWidth = Math.min(800, containerWidth);
-        const svgHeight = isMobile ? 300 : 400;
-        
-        svg.attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
-           .attr("preserveAspectRatio", "xMidYMid meet");
-        
-        const margin = { 
-            top: 20, 
-            right: isMobile ? 80 : 150, 
-            bottom: 50, 
-            left: isMobile ? 60 : 100 
-        };
-        
-        const width = svgWidth - margin.left - margin.right;
-        const height = svgHeight - margin.top - margin.bottom;
+        const margin = { top: 20, right: 150, bottom: 50, left: 100 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
         // Check if data is available
@@ -2216,32 +2301,31 @@ function createKMCurve() {
         const xAxis = g.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x)
-                .ticks(isMobile ? 5 : 9)
-                .tickValues(isMobile ? [0, 2, 4, 6, 8] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+                .ticks(9)
+                .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
             );
 
         // Customize x-axis font style
         xAxis.selectAll("text")
-            .style("font-size", isMobile ? "10px" : "12px")
+            .style("font-size", "12px")
             .style("font-family", "Arial, sans-serif");
         
         // Add y-axis
         const yAxis = g.append("g")
             .call(d3.axisLeft(y)
-                .ticks(isMobile ? 5 : 10)
+                .ticks(10)
                 .tickFormat(d3.format(".0%"))
             );
 
         // Customize y-axis font style
         yAxis.selectAll("text")
-            .style("font-size", isMobile ? "10px" : "12px")
+            .style("font-size", "12px")
             .style("font-family", "Arial, sans-serif");
 
         // Axis labels
         g.append("text")
             .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 10})`)
             .style("text-anchor", "middle")
-            .style("font-size", isMobile ? "12px" : "14px")
             .text("Time Since Diagnosis (Years)");
 
         g.append("text")
@@ -2250,7 +2334,6 @@ function createKMCurve() {
             .attr("x", 0 - height / 2)
             .attr("dy", "1em")
             .style("text-anchor", "middle")
-            .style("font-size", isMobile ? "12px" : "14px")
             .text("Survival Probability (%)");
 
         // Line generator
@@ -2281,20 +2364,17 @@ function createKMCurve() {
 
             // Legend for "Female" and "Male"
             if (key === "sex.=F" || key === "sex.=M") {
-                const legendX = width + margin.right - (isMobile ? 60 : 100);
-                const legendY = 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + (isMobile ? 150 : 200);
-                
                 svg.append("circle")
-                    .attr("cx", legendX)
-                    .attr("cy", legendY)
-                    .attr("r", isMobile ? 4 : 5)
+                    .attr("cx", width + margin.right - 100)
+                    .attr("cy", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + 200)
+                    .attr("r", 5)
                     .style("fill", color(key));
 
                 svg.append("text")
-                    .attr("x", legendX + 10)
-                    .attr("y", legendY + 4)
+                    .attr("x", width + margin.right - 90)
+                    .attr("y", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + 204)
                     .text(labelMapping[key])
-                    .style("font-size", isMobile ? "10px" : "12px")
+                    .style("font-size", "12px")
                     .attr("alignment-baseline", "middle");
             }
         });
@@ -2308,20 +2388,17 @@ function createKMCurve() {
             .attr("d", line);
 
         // Legend for Total Population
-        const totalLegendX = width + margin.right - (isMobile ? 60 : 100);
-        const totalLegendY = isMobile ? 190 : 240;
-        
         svg.append("circle")
-            .attr("cx", totalLegendX)
-            .attr("cy", totalLegendY)
-            .attr("r", isMobile ? 4 : 5)
+            .attr("cx", width + margin.right - 100)
+            .attr("cy", 240)
+            .attr("r", 5)
             .style("fill", color("Total"));
 
         svg.append("text")
-            .attr("x", totalLegendX + 10)
-            .attr("y", totalLegendY + 4)
+            .attr("x", width + margin.right - 90)
+            .attr("y", 244)
             .text("Total")
-            .style("font-size", isMobile ? "10px" : "12px")
+            .style("font-size", "12px")
             .attr("alignment-baseline", "middle");
 
         // Target time points for dots
@@ -2335,7 +2412,7 @@ function createKMCurve() {
             .style("color", "#fff")
             .style("padding", "5px 10px")
             .style("border-radius", "5px")
-            .style("font-size", isMobile ? "10px" : "12px")
+            .style("font-size", "12px")
             .style("pointer-events", "none")
             .style("opacity", 0);
 
@@ -2354,7 +2431,7 @@ function createKMCurve() {
                     g.append("circle")
                         .attr("cx", x(+closestPoint.time))
                         .attr("cy", y(+closestPoint.survival))
-                        .attr("r", isMobile ? 3 : 5)
+                        .attr("r", 5)
                         .attr("fill", color(key))
                         .on("mouseover", function (event) {
                             tooltip
@@ -2440,39 +2517,18 @@ Papa.parse('incidence_data.csv', {
                 datasets: cohortDatasets
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: 'Number of Patients'
-                        },
-                        ticks: {
-                            font: {
-                                size: window.innerWidth < 768 ? 10 : 12
-                            }
                         }
                     },
                     x: {
                         title: {
                             display: true,
                             text: 'Year'
-                        },
-                        ticks: {
-                            font: {
-                                size: window.innerWidth < 768 ? 10 : 12
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            font: {
-                                size: window.innerWidth < 768 ? 10 : 12
-                            }
                         }
                     }
                 }
@@ -2664,44 +2720,6 @@ Papa.parse('incidence_data.csv', {
     error: function(error) {
         console.error("Error loading historical data:", error);
     }
-});
-
-// Add resize event listener to update charts on window resize
-let resizeTimer;
-window.addEventListener('resize', function() {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
-        // Update chart font sizes based on new window size
-        if (incidenceChartObj) {
-            incidenceChartObj.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            incidenceChartObj.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            incidenceChartObj.update();
-        }
-        if (rateChartObj) {
-            rateChartObj.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            rateChartObj.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            rateChartObj.update();
-        }
-        if (prevalenceNumberChart) {
-            prevalenceNumberChart.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            prevalenceNumberChart.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            prevalenceNumberChart.update();
-        }
-        if (prevalenceRateChart) {
-            prevalenceRateChart.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            prevalenceRateChart.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            prevalenceRateChart.update();
-        }
-        if (myChart) {
-            myChart.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            myChart.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
-            myChart.update();
-        }
-        
-        // Recreate KM curve with new dimensions
-        d3.select("#chart").selectAll("*").remove();
-        createKMCurve();
-    }, 250);
 });
 
 function zoomSankey() {
