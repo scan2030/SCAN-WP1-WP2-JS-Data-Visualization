@@ -88,9 +88,9 @@
         
         .legend-text {
             font-family: Arial, sans-serif; /* Change font family */
-            font-size: 12px;               /* Change font size */
+            font-size: 16px;               /* Change font size */
             font-weight: 530;              /* Control font weight (normal=400, bold=700) */
-            color: #545151;                /* Change text color */
+            color: #333333;                /* Change text color */
         }
 
         
@@ -184,7 +184,7 @@
 </div>
 
 <div id="cohortData" class="tab">
-    <h2>Patients in Unmet Needs with Treatment-Resistant Depression by Year</h2>
+    <h2>Patients in Unmet Needs with Treatment-Resistant Depression</h2>
     <canvas id="cohortChart"></canvas>
 </div>
 
@@ -958,13 +958,24 @@ function updateIncidenceCharts() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Number of incident cases'
+                        text: 'Number of Incident Cases',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     }
+
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     },
                     //max: years.length - 1 // Initially show only historical years
                 }
@@ -1258,13 +1269,23 @@ function updateIncidenceCharts() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Age-standardized prevalence rate (per 10,000 persons)'
+                        text: ['Age-standardized Incidence Rate', '(per 10,000 persons)'],
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     },
                     //max: years.length - 1 // Initially show only historical years
                 }
@@ -1576,13 +1597,23 @@ function updatePrevalenceCharts() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Number of prevalent cases'
+                        text: 'Number of Prevalent Cases',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     },
                     //max: years.length - 1 // Initially show only historical years
                 }
@@ -1876,13 +1907,24 @@ function updatePrevalenceCharts() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Age-standardized incidence rate (per 10,000 persons)'
+                        text: ['Age-standardized Prevalence Rate', '(per 10,000 persons)'],
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
+                        
                     },
                     //max: years.length - 1 // Initially show only historical years
                 }
@@ -2079,7 +2121,12 @@ function updateCostChart() {
                     stacked: true,
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     },
                     offset: true,
                     ticks: {
@@ -2090,7 +2137,12 @@ function updateCostChart() {
                     stacked: true,
                     title: {
                         display: true,
-                        text: 'Cost (HKD)'
+                        text: 'Cost (HKD)',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                     },
                     ticks: {
                         callback: function(value) {
@@ -2207,9 +2259,9 @@ function updateCostChart() {
         // Text label
         const textSpan = document.createElement('span');
         textSpan.style.fontFamily = 'Arial, sans-serif';
-        textSpan.style.fontSize = '12px';
+        textSpan.style.fontSize = '16px';
         textSpan.style.fontWeight = '530';
-        textSpan.style.color = '#545151';
+        textSpan.style.color = '#333333';
         textSpan.textContent = label;
         
         item.appendChild(colorBox);
@@ -2294,7 +2346,7 @@ function createKMCurve() {
             .range([0, width]);
 
         const y = d3.scaleLinear()
-            .domain([0, 1])
+            .domain([0.5, 1])
             .range([height, 0]);
 
         // Add x-axis
@@ -2308,7 +2360,8 @@ function createKMCurve() {
         // Customize x-axis font style
         xAxis.selectAll("text")
             .style("font-size", "12px")
-            .style("font-family", "Arial, sans-serif");
+            .style("font-family", "Arial, sans-serif")
+            .style("fill", "#666666");  // Gray text
         
         // Add y-axis
         const yAxis = g.append("g")
@@ -2320,7 +2373,21 @@ function createKMCurve() {
         // Customize y-axis font style
         yAxis.selectAll("text")
             .style("font-size", "12px")
-            .style("font-family", "Arial, sans-serif");
+            .style("font-family", "Arial, sans-serif")
+            .style("fill", "#666666");  // Gray text;
+        
+                // Style x-axis line and tick marks
+        xAxis.selectAll("path")  // Axis line
+            .style("stroke", "#666666");
+
+        xAxis.selectAll("line")  // Tick marks
+            .style("stroke", "#666666");
+
+        yAxis.selectAll("path")  // Axis line
+            .style("stroke", "#666666");
+
+        yAxis.selectAll("line")  // Tick marks
+            .style("stroke", "#666666");
 
         // Axis labels
         g.append("text")
@@ -2374,7 +2441,8 @@ function createKMCurve() {
                     .attr("x", width + margin.right - 90)
                     .attr("y", 20 * [...datasets["Sex Groups"].keys()].indexOf(key) + 204)
                     .text(labelMapping[key])
-                    .style("font-size", "12px")
+                    .style("font-size", "16px")
+                    .style("fill", "#333333")    
                     .attr("alignment-baseline", "middle");
             }
         });
@@ -2398,7 +2466,7 @@ function createKMCurve() {
             .attr("x", width + margin.right - 90)
             .attr("y", 244)
             .text("Total")
-            .style("font-size", "12px")
+            .style("font-size", "16px")
             .attr("alignment-baseline", "middle");
 
         // Target time points for dots
@@ -2517,18 +2585,40 @@ Papa.parse('incidence_data.csv', {
                 datasets: cohortDatasets
             },
             options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#333333',           // Gray legend text color
+                            font: {
+                                size: 16,               // Font size
+                                family: 'Arial',        // Font family
+                                weight: '530'           // Font weight
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Number of Patients'
+                            text: 'Number of Patients',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: 'Year'
+                            text: 'Year',
+                        font: {
+                            size: 16,           // Change font size here
+                            family: 'Arial'     // Change font family here
+                        },
+                        color: '#333333'        // Change color here
                         }
                     }
                 }
