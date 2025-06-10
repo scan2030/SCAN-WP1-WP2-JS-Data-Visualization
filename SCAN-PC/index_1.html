@@ -186,17 +186,8 @@
 </div>
 
 <div id="cohortData" class="tab">
-    <h2>Proportion of Patients Not Treated by NHA/docetaxel in 180 Days in Each Year</h2>
-    <div class="button-container">
-        <button class="active" onclick="toggleUnmetNeeds('crpc', event)">CRPC Patients</button>
-        <button onclick="toggleUnmetNeeds('metastatic', event)">Metastatic Patients</button>
-    </div>
-    <div id="crpcChartContainer" class="chart-wrapper">
-        <canvas id="crpcChart"></canvas>
-    </div>
-    <div id="metastaticChartContainer" class="chart-wrapper">
-        <canvas id="metastaticChart"></canvas>
-    </div>
+    <h2>Proportion of CRPC and Metastatic Patients Not Treated by NHA/docetaxel in 180 Days in Each Year</h2>
+    <canvas id="treatedPatientsChart"></canvas>
 </div>
 
 <div id="kmChartContainer" class="tab">
@@ -230,8 +221,6 @@ let incidenceChartObj;
 let rateChartObj;
 let prevalenceNumberChart;
 let prevalenceRateChart;
-let crpcChart;
-let metastaticChart;
 let years = [];
 let filteredYears = []; // Years from 2014 onwards
 let yearStartIndex = 0; // Index where 2014 starts
@@ -436,38 +425,6 @@ function togglePrevalence(type, evt) {
         const buttons = document.querySelectorAll('#prevalence .button-container button');
         buttons.forEach((button, index) => {
             if ((type === 'number' && index === 0) || (type === 'rate' && index === 1)) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-    }
-}
-
-function toggleUnmetNeeds(type, evt) {
-    const crpcChartContainer = document.getElementById('crpcChartContainer');
-    const metastaticChartContainer = document.getElementById('metastaticChartContainer');
-
-    if (type === 'crpc') {
-        crpcChartContainer.style.display = 'block';
-        metastaticChartContainer.style.display = 'none';
-    } else {
-        crpcChartContainer.style.display = 'none';
-        metastaticChartContainer.style.display = 'block';
-    }
-
-    // Set the active button
-    if (evt) {
-        const buttons = document.querySelectorAll('#cohortData .button-container button');
-        buttons.forEach(button => {
-            button.classList.remove('active');
-        });
-        evt.currentTarget.classList.add('active');
-    } else {
-        // If called programmatically, activate the first button for CRPC
-        const buttons = document.querySelectorAll('#cohortData .button-container button');
-        buttons.forEach((button, index) => {
-            if ((type === 'crpc' && index === 0) || (type === 'metastatic' && index === 1)) {
                 button.classList.add('active');
             } else {
                 button.classList.remove('active');
@@ -3167,6 +3124,98 @@ function loadTreatedPatientsChart() {
             const years = [...new Set(filteredData.map(row => row.year))].sort((a, b) => parseInt(a) - parseInt(b));
             const groups = [...new Set(filteredData.map(row => row.grp))];
             
+            // Clear existing chart div content but keep the title
+            const chartDiv = document.getElementById('cohortData');
+            const title = chartDiv.querySelector('h2');
+            
+            // Check for existing charts and destroy them
+            const existingCanvas = document.getElementById('treatedPatientsChart');
+            if (existingCanvas) {
+                const chartInstance = Chart.getChart(existingCanvas);
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+            }
+            
+            // Clear everything
+            chartDiv.innerHTML = '';
+            chartDiv.appendChild(title);
+            
+            // Create a container that will hold the chart
+            const chartsOuterContainer = document.createElement('div');
+            chartsOuterContainer.style.width = '100%';
+            chartsOuterContainer.style.maxWidth = '2400px';
+            chartsOuterContainer.style.margin = '0 auto';
+            chartsOuterContainer.style.position = 'relative';
+            chartsOuterContainer.style.height = '400px';
+            chartDiv.appendChild(chartsOuterContainer);
+            
+            // Create a container for the facet titles with position: relative
+            const facetTitles = document.createElement('div');
+            facetTitles.style.position = 'relative';
+            facetTitles.style.width = '100%';
+            facetTitles.style.height = '40px'; // Increased height to accommodate lower text
+            facetTitles.style.marginBottom = '10px';
+            
+            // Calculate positions for titles (adjusted for proper centering)
+            const gapWidth = 20; // Gap width in percentage
+            const chartWidth = (100 - gapWidth) / 2; // Width of each chart section
+            
+            // Position for CR title - center of left section
+            const crCenterPos = chartWidth / 2;
+            
+            // Position for M title - center of right section
+            const mCenterPos = 100 - (chartWidth / 2);
+            
+            // Add the CR title positioned at the center of its chart section
+            const crTitle = document.createElement('div');
+            crTitle.textContent = 'CRPC Patients';
+            crTitle.style.position = 'absolute';
+            crTitle.style.left = crCenterPos + '%';
+            crTitle.style.top = '30px'; // Move down by 20px
+            crTitle.style.transform = 'translateX(-50%)'; // Center horizontally
+            crTitle.style.fontWeight = 'bold';
+            crTitle.style.fontSize = '16px';
+            
+            // Add the M title positioned at the center of its chart section
+            const mTitle = document.createElement('div');
+            mTitle.textContent = 'Metastatic Patients';
+            mTitle.style.position = 'absolute';
+            mTitle.style.left = mCenterPos + '%';
+            mTitle.style.top = '30px'; // Move down by 20px
+            mTitle.style.transform = 'translateX(-50%)'; // Center horizontally
+            mTitle.style.fontWeight = 'bold';
+            mTitle.style.fontSize = '16px';
+            
+            facetTitles.appendChild(crTitle);
+            facetTitles.appendChild(mTitle);
+            
+            chartsOuterContainer.appendChild(facetTitles);
+            
+            // Create a canvas for the chart
+            const canvas = document.createElement('canvas');
+            canvas.id = 'treatedPatientsChart';
+            canvas.style.width = '100%';
+            canvas.style.height = 'calc(100% - 40px)'; // Adjust for increased title height
+            chartsOuterContainer.appendChild(canvas);
+            
+            // Modify the data structure to include a gap between groups
+            // Create labels including a gap between groups
+            const labels = [];
+            
+            // Add CR years
+            years.forEach(year => {
+                labels.push(`${year} (CR)`);
+            });
+            
+            // Add a gap label
+            labels.push('gap');
+            
+            // Add M years
+            years.forEach(year => {
+                labels.push(`${year} (M)`);
+            });
+            
             // Collect data for all years and groups
             const data = {};
             groups.forEach(group => {
@@ -3200,118 +3249,241 @@ function loadTreatedPatientsChart() {
                 { id: 'treat_180', label: 'Treated within 30-180 days', color: 'forestgreen' },
                 { id: 'diagnosis', label: 'Not treated in 180 days', color: 'red' }
             ];
-
-            // Function to create a chart for a specific group
-            function createChart(group, canvasId, title) {
-                // Clean up existing chart
-                const existingChart = Chart.getChart(canvasId);
-                if (existingChart) {
-                    existingChart.destroy();
-                }
-
-                const datasets = patientTypes.map(type => ({
+            
+            // Build datasets with gap
+            const datasets = [];
+            
+            patientTypes.forEach(type => {
+                const datasetData = [];
+                
+                // Add CR data
+                years.forEach(year => {
+                    datasetData.push(data['CR'][year][type.id]);
+                });
+                
+                // Add gap data (zero value)
+                datasetData.push(null); // null for the gap (no bar)
+                
+                // Add M data
+                years.forEach(year => {
+                    datasetData.push(data['M'][year][type.id]);
+                });
+                
+                datasets.push({
                     label: type.label,
-                    data: years.map(year => data[group][year][type.id]),
+                    data: datasetData,
                     backgroundColor: type.color,
                     datalabels: {
-                        display: type.id === 'diagnosis', // Only show labels for 'not treated' category
+                        display: function(context) {
+                            // Only display data labels for diagnosis type (red) and not for the gap
+                            return type.id === 'diagnosis' && context.dataIndex !== years.length;
+                        },
                         color: 'white',
                         font: {
                             weight: 'bold',
                             size: 10
                         },
                         formatter: function(value, context) {
-                            const year = years[context.dataIndex];
-                            const propValue = data[group][year].prop_180;
-                            return propValue ? (propValue * 100).toFixed(1) + '%' : '';
+                            // Skip the gap
+                            if (context.dataIndex === years.length) return '';
+                            
+                            let group, year;
+                            if (context.dataIndex < years.length) {
+                                group = 'CR';
+                                year = years[context.dataIndex];
+                            } else {
+                                group = 'M';
+                                // Adjust index to account for the gap
+                                year = years[context.dataIndex - years.length - 1];
+                            }
+                            
+                            // Return the prop_180 value as percentage
+                            if (data[group][year].prop_180) {
+                                return (data[group][year].prop_180 * 100).toFixed(1) + '%';
+                            }
+                            return '';
                         }
                     }
-                }));
-
-                const ctx = document.getElementById(canvasId).getContext('2d');
-                return new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: years,
-                        datasets: datasets
+                });
+            });
+            
+            // Create the chart
+            const ctx = document.getElementById('treatedPatientsChart').getContext('2d');
+            
+            // Custom plugin to ensure the gap is rendered properly and draw additional vertical lines
+            const gapPlugin = {
+                id: 'gapPlugin',
+                beforeDraw: function(chart) {
+                    // No need to draw anything - the null value and the gap label will create the space
+                }
+            };
+            
+            // Register the plugin
+            Chart.register(gapPlugin);
+            
+            window.patientChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(label => {
+                        // Use empty string for the gap
+                        if (label === 'gap') return '';
+                        // Format other labels to show only year
+                        const match = label.match(/(\d{4})/);
+                        return match ? match[1] : label;
+                    }),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    
+                    // Set bar appearance
+                    barPercentage: 0.99,
+                    categoryPercentage: 0.9,
+                    
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 20,
+                                padding: 10
+                            }
+                        },
+                        
+                        tooltip: {
+                            mode: 'point',
+                            filter: function(tooltipItem) {
+                                // Don't show tooltip for gap
+                                return tooltipItem.dataIndex !== years.length; 
+                            },
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    const index = item.dataIndex;
+                                    
+                                    if (index < years.length) {
+                                        return `${years[index]} - CRPC Patients`;
+                                    } else if (index > years.length) {
+                                        // Adjust for gap
+                                        return `${years[index - years.length - 1]} - Metastatic Patients`;
+                                    }
+                                    return '';
+                                },
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        barPercentage: 0.99,
-                        categoryPercentage: 0.9,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 20,
-                                    padding: 10
+                    
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                display: true, // Show vertical grid lines
+                                color: '#ddd', // Light grey color for grid lines
+                                lineWidth: 1,
+                                drawOnChartArea: true,
+                                drawTicks: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: {
+                                    size: 14
                                 }
                             },
-                            tooltip: {
-                                callbacks: {
-                                    title: function(tooltipItems) {
-                                        const item = tooltipItems[0];
-                                        return `${item.label} - ${title}`;
-                                    },
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${context.raw}`;
-                                    }
+                            // Skip grid lines for the gap
+                            afterTickToLabelConversion: function(scaleInstance) {
+                                const ticks = scaleInstance.ticks;
+                                
+                                // Find the gap tick
+                                const gapIndex = years.length;
+                                
+                                if (ticks[gapIndex]) {
+                                    // Make the gap tick invisible but keep its space
+                                    ticks[gapIndex].label = '';
                                 }
                             }
                         },
-                        scales: {
-                            x: {
-                                stacked: true,
-                                title: {
-                                    display: true,
-                                    text: 'Year',
-                                    font: { size: 14 }
-                                }
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                color: '#ddd', // Light grey color for grid lines
+                                lineWidth: 1
                             },
-                            y: {
-                                stacked: true,
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Patients',
-                                    font: { size: 14 }
+                            title: {
+                                display: true,
+                                text: 'Number of Patients',
+                                font: {
+                                    size: 14
                                 }
                             }
                         }
-                    },
-                    plugins: [ChartDataLabels]
-                });
-            }
-
-            // Create separate charts for CRPC and Metastatic
-            crpcChart = createChart('CR', 'crpcChart', 'CRPC Patients');
-            metastaticChart = createChart('M', 'metastaticChart', 'Metastatic Patients');
-
-            // Show initial chart (CRPC by default)
-            toggleUnmetNeeds('crpc', null);
-
-            // Add note about proportion
-            const noteContainer = document.getElementById('cohortData');
-            let existingNote = noteContainer.querySelector('.proportion-note');
-            if (!existingNote) {
-                const note = document.createElement('div');
-                note.className = 'proportion-note';
-                note.textContent = '% Proportion of CRPC or metastatic patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
-                note.style.textAlign = 'center';
-                note.style.color = '#777';
-                note.style.fontSize = '12px';
-                note.style.marginTop = '10px';
-                note.style.fontWeight = 'normal';
-                noteContainer.appendChild(note);
-            }
+                    }
+                },
+                plugins: [ChartDataLabels, gapPlugin]
+            });
+            
+            // Add note about proportion AFTER chart is rendered and positioned below the legend
+            const legendHeight = 1; // Estimated height for legend
+            const note = document.createElement('div');
+            note.textContent = '% Proportion of  CRPC or metastatic patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
+            note.style.textAlign = 'center';
+            note.style.color = '#777'; // Grey color
+            note.style.fontSize = '12px'; // Match legend font size
+            note.style.marginTop = legendHeight + 'px'; // Position below legend
+            note.style.fontWeight = 'normal'; // Not bold
+            chartsOuterContainer.appendChild(note);
+            
+            // Adjust titles after chart is drawn to ensure perfect alignment
+            setTimeout(function() {
+                try {
+                    if (window.patientChart) {
+                        const chart = window.patientChart;
+                        const canvas = chart.canvas;
+                        const chartArea = chart.chartArea;
+                        
+                        // Calculate the centers of each chart section based on actual chart rendering
+                        const crCenter = chartArea.left + (chartArea.width * 0.25);
+                        const mCenter = chartArea.left + (chartArea.width * 0.75);
+                        
+                        // Fine-tune title positions while maintaining the top value
+                        crTitle.style.left = (crCenter / canvas.clientWidth * 120) + '%';
+                        mTitle.style.left = (mCenter / canvas.clientWidth * 85) + '%';
+                        
+                        // Draw extra vertical line at the gap position
+                        const ctx = chart.ctx;
+                        const xAxis = chart.scales.x;
+                        const yAxis = chart.scales.y;
+                        
+                        if (ctx && xAxis && yAxis) {
+                            // Draw a thicker, more visible line at the gap
+                            const gapIndex = years.length;
+                            const x = xAxis.getPixelForValue(gapIndex);
+                            
+                            ctx.save();
+                            ctx.strokeStyle = '#aaa'; // Darker grey for the center divider
+                            ctx.lineWidth = 2; // Thicker line
+                            ctx.beginPath();
+                            ctx.moveTo(x, yAxis.top);
+                            ctx.lineTo(x, yAxis.bottom);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error adjusting title positions:", e);
+                }
+            }, 500);
         },
         error: function(error) {
             console.error("Error loading CSV:", error);
         }
     });
 }
-
 function zoomSankey() {
     const sankeyDiagram = document.getElementById('sankeyDiagram');
     if (sankeyDiagram) {
