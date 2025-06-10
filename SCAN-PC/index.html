@@ -447,13 +447,24 @@ function togglePrevalence(type, evt) {
 function toggleUnmetNeeds(type, evt) {
     const crpcChartContainer = document.getElementById('crpcChartContainer');
     const metastaticChartContainer = document.getElementById('metastaticChartContainer');
+    const proportionNote = document.getElementById('proportion-note');
 
     if (type === 'crpc') {
         crpcChartContainer.style.display = 'block';
         metastaticChartContainer.style.display = 'none';
+        
+        // Update note text for CRPC
+        if (proportionNote) {
+            proportionNote.textContent = '% Proportion of CRPC patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
+        }
     } else {
         crpcChartContainer.style.display = 'none';
         metastaticChartContainer.style.display = 'block';
+        
+        // Update note text for Metastatic
+        if (proportionNote) {
+            proportionNote.textContent = '% Proportion of metastatic patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
+        }
     }
 
     // Set the active button
@@ -3202,7 +3213,7 @@ function loadKMCurve() {
                         .attr("x", 20)
                         .attr("y", index * 25 + 12)
                         .text(group)
-                        .style("font-size", "12px")
+                        .style("font-size", "16px")
                         .attr("alignment-baseline", "middle");
                 });
         },
@@ -3278,7 +3289,7 @@ function loadTreatedPatientsChart() {
                         color: 'white',
                         font: {
                             weight: 'bold',
-                            size: 10
+                            size: 16
                         },
                         formatter: function(value, context) {
                             const year = years[context.dataIndex];
@@ -3305,7 +3316,12 @@ function loadTreatedPatientsChart() {
                                 position: 'bottom',
                                 labels: {
                                     boxWidth: 20,
-                                    padding: 10
+                                    padding: 10,
+                                    font: {
+                                        size: 16,              // Change this value to adjust font size
+                                        family: 'Arial',       // Optional: specify font family
+                                        weight: 'normal'       // Optional: specify font weight
+                                    }
                                 }
                             },
                             tooltip: {
@@ -3359,16 +3375,17 @@ function loadTreatedPatientsChart() {
             // Show initial chart (CRPC by default)
             toggleUnmetNeeds('crpc', null);
 
-            // Add note about proportion
+                // Add note about proportion
             const noteContainer = document.getElementById('cohortData');
             let existingNote = noteContainer.querySelector('.proportion-note');
             if (!existingNote) {
                 const note = document.createElement('div');
                 note.className = 'proportion-note';
-                note.textContent = '% Proportion of CRPC or metastatic patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
+                note.id = 'proportion-note'; // Add an ID for easy access
+                note.textContent = '% Proportion of CRPC patients not treated by NHA/docetaxel in 180 Days in the yearly prostate cancer cohort';
                 note.style.textAlign = 'center';
                 note.style.color = '#777';
-                note.style.fontSize = '12px';
+                note.style.fontSize = '16px';
                 note.style.marginTop = '10px';
                 note.style.fontWeight = 'normal';
                 noteContainer.appendChild(note);
