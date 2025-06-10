@@ -2386,6 +2386,33 @@ function createKMCurve() {
             .style("font-size", "12px")
             .style("font-family", "Arial, sans-serif");
 
+            // Add grid lines - insert this after the y-axis creation
+        // Add horizontal grid lines
+        g.selectAll(".horizontal-grid")
+            .data(y.ticks(10))
+            .enter()
+            .append("line")
+            .attr("class", "horizontal-grid")
+            .attr("x1", 0)
+            .attr("x2", width)
+            .attr("y1", d => y(d))
+            .attr("y2", d => y(d))
+            .style("stroke", "#e0e0e0")
+            .style("stroke-width", 1);
+
+        // Add vertical grid lines
+        g.selectAll(".vertical-grid")
+            .data(x.ticks(9))
+            .enter()
+            .append("line")
+            .attr("class", "vertical-grid")
+            .attr("x1", d => x(d))
+            .attr("x2", d => x(d))
+            .attr("y1", 0)
+            .attr("y2", height)
+            .style("stroke", "#e0e0e0")
+            .style("stroke-width", 1);
+
         // Axis labels
         g.append("text")
             .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 10})`)

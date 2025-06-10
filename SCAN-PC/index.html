@@ -3099,6 +3099,35 @@ function loadKMCurve() {
             
             yAxis.selectAll("path, line")
                 .style("stroke", "#808080"); // Gray axis lines
+
+
+        // Add grid lines - insert this after the y-axis creation
+            // Add horizontal grid lines
+            g.selectAll(".horizontal-grid")
+                .data(y.ticks(10))
+                .enter()
+                .append("line")
+                .attr("class", "horizontal-grid")
+                .attr("x1", 0)
+                .attr("x2", width)
+                .attr("y1", d => y(d))
+                .attr("y2", d => y(d))
+                .style("stroke", "#e0e0e0")
+                .style("stroke-width", 1);
+
+            // Add vertical grid lines
+            g.selectAll(".vertical-grid")
+                .data(x.ticks(Math.min(10, maxTime + 1)))
+                .enter()
+                .append("line")
+                .attr("class", "vertical-grid")
+                .attr("x1", d => x(d))
+                .attr("x2", d => x(d))
+                .attr("y1", 0)
+                .attr("y2", height)
+                .style("stroke", "#e0e0e0")
+                .style("stroke-width", 1);
+
             
             // Add axis labels
             g.append("text")
