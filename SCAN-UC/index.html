@@ -53,11 +53,12 @@
         }
         canvas {
             max-width: 800px;
-            height:  400px;
+            height:  450px; 
             margin: auto;
         }
         .chart-wrapper {
             max-width: 800px;
+            height:  500px; 
             margin: 0 auto;
         }
 
@@ -898,6 +899,8 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,  
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -961,7 +964,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Number of Incident Cases',
                             font: {
-                                size: 16,           // Change font size here
+                                size: 14,           // Change font size here
                                 family: 'Arial'     // Change font family here
                             },
                             color: '#333333'        // Change color here
@@ -972,7 +975,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1208,6 +1211,7 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1271,7 +1275,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: ['Age-standardized Incidence Rate',' (per 10,000 persons)'],
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1282,7 +1286,7 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1536,6 +1540,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
+            maintainAspectRatio: false,  
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1599,7 +1604,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: 'Number of Prevalent Cases',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1610,7 +1615,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1846,6 +1851,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
+            maintainAspectRatio: false,  
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1909,7 +1915,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: ['Age-standardized Prevalence Rate', '(per 10,000 persons)'],
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -1920,7 +1926,7 @@ function updatePrevalenceCharts() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -2122,7 +2128,7 @@ function updateCostChart() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -2138,7 +2144,7 @@ function updateCostChart() {
                         display: true,
                         text: 'Cost (HKD)',
                         font: {
-                            size: 16,           // Change font size here
+                            size: 14,           // Change font size here
                             family: 'Arial'     // Change font family here
                         },
                         color: '#333333'        // Change color here
@@ -2888,7 +2894,7 @@ function loadTreatedPatientsChart() {
                                 display: true,
                                 text: 'Year',
                             font: {
-                                size: 16,           // Change font size here
+                                size: 14,           // Change font size here
                                 family: 'Arial'     // Change font family here
                             },
                             color: '#333333'        // Change color here
@@ -2901,7 +2907,7 @@ function loadTreatedPatientsChart() {
                                 display: true,
                                 text: 'Number of Patients',
                             font: {
-                                size: 16,           // Change font size here
+                                size: 14,           // Change font size here
                                 family: 'Arial'     // Change font family here
                             },
                             color: '#333333'        // Change color here
@@ -2915,7 +2921,7 @@ function loadTreatedPatientsChart() {
                                 boxWidth: 20,
                                 padding: 10,
                                 font: {
-                                    size: 16,              // Change font size (default is usually around 12)
+                                    size: 14,              // Change font size (default is usually around 12)
                                     family: 'Arial',       // Change font family
                                     weight: 'normal'       // Change font weight
                                 },
