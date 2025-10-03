@@ -1040,55 +1040,21 @@ function updateIncidenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
-                                
-                                if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('Less than 65')) { // Changed from 'Less than 60'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('65-79')) { // Changed from '60-74'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('80+')) { // Changed from '75+'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                }
-                                
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${Math.round(value)}`,
-                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-                                    ];
-                                }
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
                             }
                             
-                            return `${label}: ${Math.round(value)}`;
+                            
+                        },
+                        title: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                const year = tooltipItems[0].label;
+                                return `Year: ${year}`;
+                            }
+                            return '';
                         }
                     }
                 }
@@ -1499,7 +1465,7 @@ function updateIncidenceCharts() {
                 legend: {
                     display: false // Disable built-in legend
                 },
-                tooltip: {
+               tooltip: {
                     callbacks: {
                         label: function(context) {
                             const label = context.dataset.label || '';
@@ -1513,115 +1479,7 @@ function updateIncidenceCharts() {
                                 return null;
                             }
                             
-                            // For forecast points (excluding 2022), add prediction interval to tooltip
-                            if (label.includes('Forecast') && value && currentYear !== 2022) {
-                                let lowerValue, upperValue;
-                                
-                                if (label.includes('Total')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('Less than 65')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('65-79')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('80+')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                }
-                                
-                                // Build tooltip lines
-                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
-                                
-                                if (lowerValue && upperValue) {
-                                    tooltipLines.push(`95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`);
-                                }
-                                
-                                // Only add percentage change for years after 2023
-                                if (currentYear > 2023) {
-                                    // Get 2023 baseline values
-                                    const baseline2023 = get2023BaselineValue(
-                                        label, allYears,
-                                        totalRateData, totalRateForecastData,
-                                        less65RateData, less65RateForecastData,
-                                        age65to79RateData, age65to79RateForecastData,
-                                        plus80RateData, plus80RateForecastData
-                                    );
-                                    
-                                    // Get 2023 PI values
-                                    const baseline2023PI = get2023BaselinePIValues(
-                                        label, allYears,
-                                        totalRateLowerData, totalRateUpperData,
-                                        less65RateLowerData, less65RateUpperData,
-                                        age65to79RateLowerData, age65to79RateUpperData,
-                                        plus80RateLowerData, plus80RateUpperData
-                                    );
-                                    
-                                    if (baseline2023 !== null && value !== null && 
-                                        baseline2023PI.lower !== null && baseline2023PI.upper !== null &&
-                                        lowerValue !== null && upperValue !== null) {
-                                        
-                                        // Calculate percentage change with CI
-                                        const changeResult = calcPercentageChangeWithCI(
-                                            baseline2023, value,
-                                            baseline2023PI.lower, baseline2023PI.upper,
-                                            lowerValue, upperValue
-                                        );
-                                        
-                                        if (changeResult) {
-                                            // Determine symbol based on percentage change value
-                                            let changeSymbol;
-                                            let changeColor;
-                                            
-                                            if (Math.abs(changeResult.pctChange) < 0.01) {
-                                                changeSymbol = '';
-                                                changeColor = '';
-                                            } else if (changeResult.pctChange > 0) {
-                                                changeSymbol = '▲';
-                                                changeColor = '+';
-                                            } else {
-                                                changeSymbol = '▼';
-                                                changeColor = '';
-                                            }
-                                            
-                                            tooltipLines.push(`Change from 2023: ${changeSymbol} ${changeColor}${changeResult.pctChange.toFixed(1)}%`);
-                                            tooltipLines.push(`95% CI: [${changeResult.ciLower.toFixed(1)}%, ${changeResult.ciUpper.toFixed(1)}%]`);
-                                        }
-                                    }
-                                } else if (currentYear === 2023) {
-                                    tooltipLines.push(`Baseline Year (2023)`);
-                                }
-                                
-                                return tooltipLines;
-                            } else {
-                                // For non-forecast points (historical data)
-                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
-                                
-                                // No percentage change shown for historical years
-                                
-                                return tooltipLines;
-                            }
+                            
                         },
                         title: function(tooltipItems) {
                             if (tooltipItems.length > 0) {
@@ -1968,62 +1826,28 @@ function updatePrevalenceCharts() {
                 legend: {
                     display: false // Disable built-in legend
                 },
-                tooltip: {
+                               tooltip: {
                     callbacks: {
                         label: function(context) {
                             const label = context.dataset.label || '';
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
-                                
-                                if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('Less than 65')) { // Changed from 'Less than 60'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('65-79')) { // Changed from '60-74'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('80+')) { // Changed from '75+'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                }
-                                
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${Math.round(value)}`,
-                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-                                    ];
-                                }
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
                             }
                             
-                            return `${label}: ${Math.round(value)}`;
+                            
+                        },
+                        title: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                const year = tooltipItems[0].label;
+                                return `Year: ${year}`;
+                            }
+                            return '';
                         }
                     }
                 }
@@ -2354,55 +2178,21 @@ function updatePrevalenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
-                                
-                                if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('Less than 65')) { // Changed from 'Less than 60'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('65-79')) { // Changed from '60-74'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                } else if (label.includes('80+')) { // Changed from '75+'
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
-                                }
-                                
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${value.toFixed(2)}`,
-                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-                                    ];
-                                }
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
                             }
                             
-                            return `${label}: ${value.toFixed(2)}`;
+                            
+                        },
+                        title: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                const year = tooltipItems[0].label;
+                                return `Year: ${year}`;
+                            }
+                            return '';
                         }
                     }
                 }
