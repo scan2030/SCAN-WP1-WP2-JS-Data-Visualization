@@ -2527,15 +2527,54 @@ function updateCostChart() {
                             const value = context.raw;
                             if (value === null) return null;
                             
+                            const currentYear = parseInt(context.label);
+                            const isForecast = context.dataIndex >= historicalYears.length;
+                            
                             // Add (Forecast) label for forecast years
                             let label = context.dataset.label;
-                            if (context.dataIndex >= historicalYears.length) {
+                            if (isForecast) {
                                 label += ' (Forecast)';
                             }
                             
                             // Format to millions with 2 decimal places
                             const valueInMillions = (value / 1000000).toFixed(2);
-                            return `${label}: HK$${valueInMillions} million`;
+                            let tooltipLines = [`${label}: HK$${valueInMillions} million`];
+                            
+                            // Add AAPC for forecast years only
+                            if (isForecast && currentYear !== 2022) {
+                                // Get the appropriate forecast data array
+                                let forecastData;
+                                if (context.dataset.label === 'Inpatient Cost') {
+                                    forecastData = forecastIP;
+                                } else if (context.dataset.label === 'Outpatient Cost') {
+                                    forecastData = forecastOP;
+                                } else if (context.dataset.label === 'Accident & Emergency Cost') {
+                                    forecastData = forecastAE;
+                                }
+                                
+                                if (forecastData && forecastYears.length > 0) {
+                                    // Calculate AAPC for 2023-2032 period within forecast data
+                                    const index2023 = forecastYears.indexOf(2023);
+                                    const index2032 = forecastYears.indexOf(2032);
+                                    
+                                    if (index2023 !== -1 && index2032 !== -1) {
+                                        const aapc = calculateAAPG(forecastData, index2023, index2032);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            return tooltipLines;
                         }
                     }
                 }
@@ -2712,7 +2751,6 @@ function updateCostChart() {
         return item;
     }
 }
-
 // Parse historical prevalence data from Male_Prevalence_v2.csv
 Papa.parse('Male_Prevalence_v2.csv', {
     download: true,
