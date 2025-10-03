@@ -432,6 +432,46 @@ function toggleChart(type, evt) {
     }
 }
 
+// Function to calculate AAPC (Average Annual Percent Change) - average of annual percent changes
+function calculateAAPG(forecastData, startIndex, endIndex) {
+    if (!forecastData || startIndex < 0 || endIndex >= forecastData.length || startIndex >= endIndex) {
+        return null;
+    }
+    
+    const annualChanges = [];
+    
+    // Calculate year-over-year percent changes
+    for (let i = startIndex; i < endIndex; i++) {
+        const currentValue = forecastData[i];
+        const nextValue = forecastData[i + 1];
+        
+        if (currentValue && nextValue && currentValue > 0) {
+            const annualChange = ((nextValue - currentValue) / currentValue) * 100;
+            annualChanges.push(annualChange);
+        }
+    }
+    
+    // Return average of annual changes
+    if (annualChanges.length > 0) {
+        return annualChanges.reduce((sum, change) => sum + change, 0) / annualChanges.length;
+    }
+    
+    return null;
+}
+
+// Function to get indices for 2023-2032 period for AAPC calculation
+function getAAPCIndices(allYears) {
+    const index2023 = allYears.indexOf(2023);
+    const index2032 = allYears.indexOf(2032);
+    
+    if (index2023 === -1 || index2032 === -1) return { startIndex: -1, endIndex: -1 };
+    
+    return {
+        startIndex: index2023,
+        endIndex: index2032
+    };
+}
+
 function togglePrevalence(type, evt) {
     const prevalenceNumberChartContainer = document.getElementById('prevalenceNumberChartContainer');
     const prevalenceRateChartContainer = document.getElementById('prevalenceRateChartContainer');
@@ -1047,14 +1087,44 @@ function updateIncidenceCharts() {
                                 return null;
                             }
                             
-                            
-                        },
-                        title: function(tooltipItems) {
-                            if (tooltipItems.length > 0) {
-                                const year = tooltipItems[0].label;
-                                return `Year: ${year}`;
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${Math.round(value)}`];
+                                
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
+                                if (label.includes('Total')) {
+                                    forecastData = totalCasesForecastData;
+                                } else if (label.includes('Less than 65')) {
+                                    forecastData = less65CasesForecastData;
+                                } else if (label.includes('65-79')) {
+                                    forecastData = age65to79CasesForecastData;
+                                } else if (label.includes('80+')) {
+                                    forecastData = plus80CasesForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
+                                    }
+                                }
+                                
+                                return tooltipLines;
                             }
-                            return '';
+                            
+                            return `${label}: ${Math.round(value)}`;
                         }
                     }
                 }
@@ -1465,31 +1535,68 @@ function updateIncidenceCharts() {
                 legend: {
                     display: false // Disable built-in legend
                 },
-               tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.dataset.label || '';
-                            if (label.includes('PI')) return null;
-                            
-                            const value = context.parsed.y || 0;
-                            const currentYear = parseInt(context.label);
-                            
-                            // Skip forecast tooltips for 2022
-                            if (currentYear === 2022 && label.includes('Forecast')) {
-                                return null;
-                            }
-                            
-                            
-                        },
-                        title: function(tooltipItems) {
-                            if (tooltipItems.length > 0) {
-                                const year = tooltipItems[0].label;
-                                return `Year: ${year}`;
-                            }
-                            return '';
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.dataset.label || '';
+                        if (label.includes('PI')) return null;
+                        
+                        const value = context.parsed.y || 0;
+                        const currentYear = parseInt(context.label);
+                        
+                        // Skip forecast tooltips for 2022
+                        if (currentYear === 2022 && label.includes('Forecast')) {
+                            return null;
                         }
+                        
+                        // For forecast points (excluding 2022)
+                        if (label.includes('Forecast') && value && currentYear !== 2022) {
+                            let tooltipLines = [`${label}: ${value.toFixed(2)}`];
+                            
+                            // Calculate AAPC from 2023 to 2032
+                            let forecastData;
+                            if (label.includes('Total')) {
+                                forecastData = totalRateForecastData;
+                            } else if (label.includes('Less than 65')) {
+                                forecastData = less65RateForecastData;
+                            } else if (label.includes('65-79')) {
+                                forecastData = age65to79RateForecastData;
+                            } else if (label.includes('80+')) {
+                                forecastData = plus80RateForecastData;
+                            }
+                            
+                            if (forecastData) {
+                                const aapgIndices = getAAPCIndices(allYears);
+                                if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                    const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                    if (aapc !== null) {
+                                        let aapgSymbol = '';
+                                        let aapgSign = '';
+                                        
+                                        if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                            aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                            aapgSign = aapc > 0 ? '+' : '';
+                                        }
+                                        
+                                        tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                    }
+                                }
+                            }
+                            
+                            return tooltipLines;
+                        } else {
+                            return [`${label}: ${value.toFixed(2)}`];
+                        }
+                    },
+                    title: function(tooltipItems) {
+                        if (tooltipItems.length > 0) {
+                            const year = tooltipItems[0].label;
+                            return `Year: ${year}`;
+                        }
+                        return '';
                     }
                 }
+            }
             },
             scales: {
                 y: {
@@ -1826,7 +1933,7 @@ function updatePrevalenceCharts() {
                 legend: {
                     display: false // Disable built-in legend
                 },
-                               tooltip: {
+                tooltip: {
                     callbacks: {
                         label: function(context) {
                             const label = context.dataset.label || '';
@@ -1840,14 +1947,44 @@ function updatePrevalenceCharts() {
                                 return null;
                             }
                             
-                            
-                        },
-                        title: function(tooltipItems) {
-                            if (tooltipItems.length > 0) {
-                                const year = tooltipItems[0].label;
-                                return `Year: ${year}`;
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${Math.round(value)}`];
+                                
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
+                                if (label.includes('Total')) {
+                                    forecastData = totalPrevForecastData;
+                                } else if (label.includes('Less than 65')) {
+                                    forecastData = less65PrevForecastData;
+                                } else if (label.includes('65-79')) {
+                                    forecastData = age65to79PrevForecastData;
+                                } else if (label.includes('80+')) {
+                                    forecastData = plus80PrevForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
+                                    }
+                                }
+                                
+                                return tooltipLines;
                             }
-                            return '';
+                            
+                            return `${label}: ${Math.round(value)}`;
                         }
                     }
                 }
@@ -2185,14 +2322,44 @@ function updatePrevalenceCharts() {
                                 return null;
                             }
                             
-                            
-                        },
-                        title: function(tooltipItems) {
-                            if (tooltipItems.length > 0) {
-                                const year = tooltipItems[0].label;
-                                return `Year: ${year}`;
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
+                                
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
+                                if (label.includes('Total')) {
+                                    forecastData = totalRateForecastData;
+                                } else if (label.includes('Less than 65')) {
+                                    forecastData = less65RateForecastData;
+                                } else if (label.includes('65-79')) {
+                                    forecastData = age65to79RateForecastData;
+                                } else if (label.includes('80+')) {
+                                    forecastData = plus80RateForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
+                                    }
+                                }
+                                
+                                return tooltipLines;
                             }
-                            return '';
+                            
+                            return `${label}: ${value.toFixed(2)}`;
                         }
                     }
                 }
