@@ -105,7 +105,7 @@
         .legend-item {
             display: flex;
             align-items: center;
-            margin: 0 10px;
+            margin: 0 5px;
             cursor: pointer;
         }
         
@@ -125,9 +125,29 @@
             border-radius: 2px;
         }
         
-        .legend-dash {
+        /* .legend-dash {
             border-top-style: dashed;
             border-top-width: 2px;
+        } */
+
+        .legend-dotted {
+            border-top-style: dotted;
+            border-top-width: 3px;
+            background-color: transparent !important;
+        }
+
+        .legend-dash {
+            border-top-style: dashed;
+            border-top-width: 3px;
+            background-color: transparent !important;
+        }
+
+        .legend-line-example {
+            display: inline-block;
+            width: 30px;
+            height: 3px;
+            margin-right: 5px;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -519,77 +539,56 @@ function adjustPrevalenceChartAxis(chart) {
     chart.update();
 }
 
-// Function to create a custom HTML legend
-function createCustomLegend(chart, legendElementId, isRate = false) {
+ function createCustomLegend(chart, legendElementId, isRate = false) {
     const legendElement = document.getElementById(legendElementId);
     legendElement.innerHTML = '';
     
-    // Create first row for historical data
-    const historicalRow = document.createElement('div');
-    historicalRow.className = 'legend-row';
+    // Create one row for all legend items
+    const legendRow = document.createElement('div');
+    legendRow.className = 'legend-row';
     
-    // Create second row for forecast data
-    const forecastRow = document.createElement('div');
-    forecastRow.className = 'legend-row';
-    
-    // Historical data items
-    const historicalItems = [
+    // Age group data items (only show these, no forecast versions)
+    const dataItems = [
         {
             label: 'Total',
-            color: '#fb8500',
-            datasetIndex: 0,
-            dash: false
+            color: '#e41a1c',
+            datasetIndex: 0
         },
         {
-            label: 'Less than 65', // Changed from 'Less than 60'
-            color: '#023047',
-            datasetIndex: 1,
-            dash: false
+            label: 'Less than 65',
+            color: '#377eb8',
+            datasetIndex: 1
         },
         {
-            label: '65-79', // Changed from '60-74'
-            color: '#219ebc',
-            datasetIndex: 2,
-            dash: false
+            label: '65-79',
+            color: '#4daf4a',
+            datasetIndex: 2
         },
         {
-            label: '80+', // Changed from '75+'
-            color: '#8ecae6',
-            datasetIndex: 3,
-            dash: false
+            label: '80+',
+            color: '#984ea3',
+            datasetIndex: 3
         }
     ];
     
-    // Forecast data items
-    const forecastItems = [
+    // Line style indicator items
+    const styleItems = [
         {
-            label: 'Total (Forecast)',
-            color: '#ff0000',
-            datasetIndex: isRate ? 5 : 5,
-            dash: true
+            label: 'Historical Data',
+            color: '#000000',
+            solid: true,
+            clickable: false
         },
         {
-            label: 'Less than 65 (Forecast)', // Changed from 'Less than 60 (Forecast)'
-            color: '#023047',
-            datasetIndex: isRate ? 8 : 8,
-            dash: true
-        },
-        {
-            label: '65-79 (Forecast)', // Changed from '60-74 (Forecast)'
-            color: '#219ebc',
-            datasetIndex: isRate ? 11 : 11,
-            dash: true
-        },
-        {
-            label: '80+ (Forecast)', // Changed from '75+ (Forecast)'
-            color: '#8ecae6',
-            datasetIndex: isRate ? 14 : 14, 
-            dash: true
+            label: 'Forecasted Data',
+            color: '#000000',
+            dashed: true,
+            clickable: false
         }
     ];
     
-    // Add historical items to the first row
-    historicalItems.forEach(item => {
+    // Add data items to the row
+    dataItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         legendItem.dataset.index = item.datasetIndex;
@@ -602,10 +601,6 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
         const colorSpan = document.createElement('span');
         colorSpan.className = 'legend-color';
         colorSpan.style.backgroundColor = item.color;
-        if (item.dash) {
-            colorSpan.classList.add('legend-dash');
-            colorSpan.style.borderTopColor = item.color;
-        }
         
         const textSpan = document.createElement('span');
         textSpan.className = 'legend-text';
@@ -614,7 +609,7 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
         legendItem.appendChild(colorSpan);
         legendItem.appendChild(textSpan);
         
-        // Add click event handler
+        // Add click event handler for toggling visibility
         legendItem.addEventListener('click', () => {
             const index = parseInt(legendItem.dataset.index);
             const meta = chart.getDatasetMeta(index);
@@ -629,162 +624,113 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
                 legendItem.classList.remove('hidden');
             }
             
+            // Calculate correct dataset indices based on the chart structure:
+            // 0: Total (historical), 1: Less than 65 (historical), 2: 65-79 (historical), 3: 80+ (historical)
+            // 4: Total Lower PI, 5: Total (Forecast), 6: Total Upper PI
+            // 7: Less than 65 Lower PI, 8: Less than 65 (Forecast), 9: Less than 65 Upper PI
+            // 10: 65-79 Lower PI, 11: 65-79 (Forecast), 12: 65-79 Upper PI
+            // 13: 80+ Lower PI, 14: 80+ (Forecast), 15: 80+ Upper PI
+            
+            const forecastIndex = 5 + (index * 3); // Forecast datasets: 5, 8, 11, 14
+            const lowerPIIndex = 4 + (index * 3);  // Lower PI datasets: 4, 7, 10, 13
+            const upperPIIndex = 6 + (index * 3);  // Upper PI datasets: 6, 9, 12, 15
+            
+            // Toggle corresponding forecast dataset
+            if (forecastIndex < chart.data.datasets.length) {
+                const forecastMeta = chart.getDatasetMeta(forecastIndex);
+                forecastMeta.hidden = meta.hidden;
+            }
+            
+            // Toggle prediction intervals
+            if (lowerPIIndex < chart.data.datasets.length) {
+                const lowerMeta = chart.getDatasetMeta(lowerPIIndex);
+                lowerMeta.hidden = meta.hidden;
+            }
+            
+            if (upperPIIndex < chart.data.datasets.length) {
+                const upperMeta = chart.getDatasetMeta(upperPIIndex);
+                upperMeta.hidden = meta.hidden;
+            }
+            
             // Update chart
             chart.update();
         });
         
-        historicalRow.appendChild(legendItem);
+        legendRow.appendChild(legendItem);
     });
     
-    // Add forecast items to the second row
-    forecastItems.forEach(item => {
+    // Add a small separator between age groups and line styles
+    const separator = document.createElement('div');
+    separator.style.width = '20px';
+    separator.style.display = 'inline-block';
+    legendRow.appendChild(separator);
+    
+    // Add style indicator items to the same row
+    styleItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
-        // Always add the 'hidden' class initially for forecast items
-        const meta = chart.getDatasetMeta(item.datasetIndex);
-        if (meta.hidden) {
-            legendItem.classList.add('hidden');
-        }
-        legendItem.dataset.index = item.datasetIndex;
+        legendItem.style.cursor = 'default';
         
-        const colorSpan = document.createElement('span');
-        colorSpan.className = 'legend-color';
-        colorSpan.style.backgroundColor = item.color;
-        if (item.dash) {
-            colorSpan.classList.add('legend-dash');
-            colorSpan.style.borderTopColor = item.color;
+        // Create a canvas element to draw the line example
+        const canvas = document.createElement('canvas');
+        canvas.width = 30;
+        canvas.height = 6;
+        canvas.style.width = '30px';
+        canvas.style.height = '6px';
+        canvas.style.marginRight = '5px';
+        canvas.style.verticalAlign = 'middle';
+        
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = item.color; // Black color
+        ctx.fillStyle = item.color; // Black color for dots
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        
+        // Dot configuration
+        const dotRadius = 2.5; // Change this value to adjust dot size (1.5 = small, 2 = medium, 3 = large)
+        
+        if (item.solid) {
+            // Historical data - solid line
+            ctx.setLineDash([]);
+        } else if (item.dashed) {
+            // Predicted data - dashed line (matches chart's borderDash: [5, 5])
+            ctx.setLineDash([5, 5]);
         }
+        
+        // Draw the line
+        ctx.beginPath();
+        ctx.moveTo(4, 3); // Start from left (leaving space for dot)
+        ctx.lineTo(26, 3); // Draw to right (leaving space for dot)
+        ctx.stroke();
+        
+        // Reset line dash for dots to ensure they are solid circles
+        ctx.setLineDash([]);
+        
+        // Draw perfectly round dots at the beginning and end
+        // Start dot
+        ctx.beginPath();
+        ctx.arc(4, 3, dotRadius, 0, 2 * Math.PI); // Perfectly round circle
+        ctx.fill();
+        
+        // End dot
+        ctx.beginPath();
+        ctx.arc(26, 3, dotRadius, 0, 2 * Math.PI); // Perfectly round circle
+        ctx.fill();
         
         const textSpan = document.createElement('span');
         textSpan.className = 'legend-text';
         textSpan.textContent = item.label;
         
-        legendItem.appendChild(colorSpan);
+        legendItem.appendChild(canvas);
         legendItem.appendChild(textSpan);
         
-        // Add click event handler for forecast items
-        legendItem.addEventListener('click', () => {
-            const index = parseInt(legendItem.dataset.index);
-            const meta = chart.getDatasetMeta(index);
-            
-            // Check if the legend item has the 'hidden' class (i.e., it's currently showing as strikethrough)
-            const isCurrentlyHidden = legendItem.classList.contains('hidden');
-            
-            // Update the dataset visibility based on the current visual state
-            meta.hidden = !isCurrentlyHidden;
-            
-            // Update class to reflect the new state
-            if (isCurrentlyHidden) {
-                // If it was hidden (strikethrough), remove that class to show it
-                legendItem.classList.remove('hidden');
-            } else {
-                // If it was showing, add the hidden class to hide it
-                legendItem.classList.add('hidden');
-            }
-            
-            // Track forecast visibility directly based on the new visual state
-            const label = chart.data.datasets[index].label;
-            
-            if (label === 'Total (Forecast)') {
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-                    
-                    // Also toggle prediction intervals to match
-                    const lowerIndex = isRate ? 4 : 4;
-                    const upperIndex = isRate ? 6 : 6;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-                    
-                    // Also toggle prediction intervals to match
-                    const lowerIndex = isRate ? 4 : 4;
-                    const upperIndex = isRate ? 6 : 6;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            } else if (label === 'Less than 65 (Forecast)') { // Changed from 'Less than 60 (Forecast)'
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.less65 = isCurrentlyHidden; // Changed from less60
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 7 : 7;
-                    const upperIndex = isRate ? 9 : 9;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.less65 = isCurrentlyHidden; // Changed from less60
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 7 : 7;
-                    const upperIndex = isRate ? 9 : 9;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            } else if (label === '65-79 (Forecast)') { // Changed from '60-74 (Forecast)'
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.age65to79 = isCurrentlyHidden; // Changed from age60to74
-                    
-                    // Toggle prediction intervals for 65-79
-                    const lowerIndex = isRate ? 10 : 10;
-                    const upperIndex = isRate ? 12 : 12;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.age65to79 = isCurrentlyHidden; // Changed from age60to74
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 10 : 10;
-                    const upperIndex = isRate ? 12 : 12;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            } else if (label === '80+ (Forecast)') { // Changed from '75+ (Forecast)'
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.plus80 = isCurrentlyHidden; // Changed from plus75
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 13 : 13;
-                    const upperIndex = isRate ? 15 : 15;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.plus80 = isCurrentlyHidden; // Changed from plus75
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 13 : 13;
-                    const upperIndex = isRate ? 15 : 15;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            }
-            
-            // Update chart
-            chart.update();
-            
-            // Adjust x-axis if needed
-            if (legendElementId.includes('prevalence')) {
-                adjustPrevalenceChartAxis(chart);
-            } else {
-                adjustChartAxis(chart);
-            }
-        });
-        
-        forecastRow.appendChild(legendItem);
+        legendRow.appendChild(legendItem);
     });
     
-    // Add rows to legend element
-    legendElement.appendChild(historicalRow);
-    legendElement.appendChild(forecastRow);
+    // Add the single row to legend element
+    legendElement.appendChild(legendRow);
 }
+
 
 function updateIncidenceCharts() {
     // Get chart contexts
@@ -899,48 +845,49 @@ function updateIncidenceCharts() {
                 {
                     label: 'Total',
                     data: totalCasesData,
-                    borderColor: '#fb8500',
+                    borderColor: '#e41a1c',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
+                    pointBackgroundColor: '#e41a1c'
                 },
                 // Less than 65 Cases - Historical - Changed from 'Less than 60'
                 {
                     label: 'Less than 65',
                     data: less65CasesData,
-                    borderColor: '#023047',
+                    borderColor: '#377eb8',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#023047'
+                    pointBackgroundColor: '#377eb8'
                 },
                 // 65-79 Cases - Historical - Changed from '60-74'
                 {
                     label: '65-79',
                     data: age65to79CasesData,
-                    borderColor: '#219ebc',
+                    borderColor: '#4daf4a',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#219ebc'
+                    pointBackgroundColor: '#4daf4a'
                 },
                 // 80+ Cases - Historical - Changed from '75+'
                 {
                     label: '80+',
                     data: plus80CasesData,
-                    borderColor: '#8ecae6',
+                    borderColor: '#984ea3',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
+                    pointBackgroundColor: '#984ea3'
                 },
+
                 // Total Cases - Lower Confidence Interval
                 {
                     label: 'Total Lower PI',
                     data: totalCasesLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    borderColor: 'rgba(228, 26, 28, 0.2)',
+                    backgroundColor: 'rgba(228, 26, 28, 0.2)',
                     fill: '+2', // Fill to dataset with index +2 (the upper interval)
                     tension: 0.1,
                     pointRadius: 0,
@@ -951,128 +898,128 @@ function updateIncidenceCharts() {
                 {
                     label: 'Total (Forecast)',
                     data: totalCasesForecastData,
-                    borderColor: '#fb8500', 
+                    borderColor: '#e41a1c', 
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
+                    pointBackgroundColor: '#e41a1c',
                     //hidden: true // Start hidden
                 },
                 // Total Cases - Upper Confidence Interval
                 {
                     label: 'Total Upper PI',
                     data: totalCasesUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    borderColor: 'rgba(228, 26, 28, 0)',
+                    backgroundColor: 'rgba(228, 26, 28, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // Less than 65 Cases - Lower Confidence Interval - Changed from 'Less than 60'
+                // Less than 65 Cases - Lower Confidence Interval
                 {
                     label: 'Less than 65 Lower PI',
                     data: less65CasesLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    borderColor: 'rgba(55, 126, 184, 0.2)',
+                    backgroundColor: 'rgba(55, 126, 184, 0.2)',
                     fill: '+2', // Fill to dataset with index +2 (the upper interval)
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // Less than 65 Cases - Forecast - Changed from 'Less than 60'
+                // Less than 65 Cases - Forecast
                 {
                     label: 'Less than 65 (Forecast)',
                     data: less65CasesForecastData,
-                    borderColor: '#023047',
+                    borderColor: '#377eb8',
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#023047',
+                    pointBackgroundColor: '#377eb8',
                     //hidden: true // Start hidden
                 },
-                // Less than 65 Cases - Upper Confidence Interval - Changed from 'Less than 60'
+                // Less than 65 Cases - Upper Confidence Interval
                 {
                     label: 'Less than 65 Upper PI',
                     data: less65CasesUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    borderColor: 'rgba(55, 126, 184, 0)',
+                    backgroundColor: 'rgba(55, 126, 184, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // 65-79 Cases - Lower Confidence Interval - Changed from '60-74'
+                // 65-79 Cases - Lower Confidence Interval
                 {
                     label: '65-79 Lower PI',
                     data: age65to79CasesLowerData,
-                    borderColor: 'rgba(33, 158, 188, 0.2)',
-                    backgroundColor: 'rgba(33, 158, 188, 0.2)',
+                    borderColor: 'rgba(77, 175, 74, 0.2)',
+                    backgroundColor: 'rgba(77, 175, 74, 0.2)',
                     fill: '+2', // Fill to dataset with index +2 (the upper interval)
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // 65-79 Cases - Forecast - Changed from '60-74'
+                // 65-79 Cases - Forecast
                 {
                     label: '65-79 (Forecast)',
                     data: age65to79CasesForecastData,
-                    borderColor: '#219ebc',
+                    borderColor: '#4daf4a',
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#219ebc',
+                    pointBackgroundColor: '#4daf4a',
                     //hidden: true // Start hidden
                 },
-                // 65-79 Cases - Upper Confidence Interval - Changed from '60-74'
+                // 65-79 Cases - Upper Confidence Interval
                 {
                     label: '65-79 Upper PI',
                     data: age65to79CasesUpperData,
-                    borderColor: 'rgba(33, 158, 188, 0)',
-                    backgroundColor: 'rgba(33, 158, 188, 0)',
+                    borderColor: 'rgba(77, 175, 74, 0)',
+                    backgroundColor: 'rgba(77, 175, 74, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // 80+ Cases - Lower Confidence Interval - Changed from '75+'
+                // 80+ Cases - Lower Confidence Interval
                 {
                     label: '80+ Lower PI',
                     data: plus80CasesLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    borderColor: 'rgba(152, 78, 163, 0.2)',
+                    backgroundColor: 'rgba(152, 78, 163, 0.2)',
                     fill: '+2', // Fill to dataset with index +2 (the upper interval)
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
                     //hidden: true // Start hidden
                 },
-                // 80+ Cases - Forecast - Changed from '75+'
+                // 80+ Cases - Forecast
                 {
                     label: '80+ (Forecast)',
                     data: plus80CasesForecastData,
-                    borderColor: '#8ecae6',
+                    borderColor: '#984ea3',
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
+                    pointBackgroundColor: '#984ea3',
                     //hidden: true // Start hidden
                 },
-                // 80+ Cases - Upper Confidence Interval - Changed from '75+'
+                // 80+ Cases - Upper Confidence Interval
                 {
                     label: '80+ Upper PI',
                     data: plus80CasesUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    borderColor: 'rgba(152, 78, 163, 0)',
+                    backgroundColor: 'rgba(152, 78, 163, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
@@ -1267,197 +1214,284 @@ function updateIncidenceCharts() {
     if (rateChartObj) {
         rateChartObj.destroy();
     }
-    
-    // Create new rate chart
+
+    // Add these helper functions before creating the chart
+    function calculatePercentageChange(currentValue, previousValue) {
+        if (!previousValue || previousValue === 0) return null;
+        return ((currentValue - previousValue) / previousValue) * 100;
+    }
+
+    // Function to calculate SE from prediction intervals using log method
+    function calcSEFromPI(lowerPI, upperPI) {
+        if (!lowerPI || !upperPI || lowerPI <= 0 || upperPI <= 0) return null;
+        return (Math.log(upperPI) - Math.log(lowerPI)) / (2 * 1.96);
+    }
+
+    // Function to calculate percentage change with confidence intervals
+    function calcPercentageChangeWithCI(valueFrom, valueTo, lowerFrom, upperFrom, lowerTo, upperTo) {
+        if (!valueFrom || !valueTo || valueFrom <= 0 || valueTo <= 0) return null;
+        
+        // Calculate SE using log method
+        const seFrom = calcSEFromPI(lowerFrom, upperFrom);
+        const seTo = calcSEFromPI(lowerTo, upperTo);
+        
+        if (!seFrom || !seTo) return null;
+        
+        // Calculate log difference and its SE
+        const diffLog = Math.log(valueTo) - Math.log(valueFrom);
+        const seDiff = Math.sqrt(seFrom * seFrom + seTo * seTo);
+        
+        // Calculate confidence intervals
+        const z = 1.96; // 95% CI
+        const lowerDiff = diffLog - z * seDiff;
+        const upperDiff = diffLog + z * seDiff;
+        
+        // Convert to percentage
+        const pctChange = (Math.exp(diffLog) - 1) * 100;
+        const lowerPct = (Math.exp(lowerDiff) - 1) * 100;
+        const upperPct = (Math.exp(upperDiff) - 1) * 100;
+        
+        return {
+            pctChange: pctChange,
+            ciLower: lowerPct,
+            ciUpper: upperPct
+        };
+    }
+
+    // Function to get the 2023 baseline value for a given dataset
+    function get2023BaselineValue(label, allYears, totalRateData, totalRateForecastData, 
+                                less65RateData, less65RateForecastData,
+                                age65to79RateData, age65to79RateForecastData,
+                                plus80RateData, plus80RateForecastData) {
+        const index2023 = allYears.indexOf(2023);
+        if (index2023 === -1) return null;
+        
+        if (label.includes('Total')) {
+            return totalRateForecastData[index2023] || null;
+        } else if (label.includes('Less than 65')) {
+            return less65RateForecastData[index2023] || null;
+        } else if (label.includes('65-79')) {
+            return age65to79RateForecastData[index2023] || null;
+        } else if (label.includes('80+')) {
+            return plus80RateForecastData[index2023] || null;
+        }
+        
+        return null;
+    }
+
+    // Function to get 2023 baseline PI values
+    function get2023BaselinePIValues(label, allYears, 
+                                    totalRateLowerData, totalRateUpperData,
+                                    less65RateLowerData, less65RateUpperData,
+                                    age65to79RateLowerData, age65to79RateUpperData,
+                                    plus80RateLowerData, plus80RateUpperData) {
+        const index2023 = allYears.indexOf(2023);
+        if (index2023 === -1) return { lower: null, upper: null };
+        
+        if (label.includes('Total')) {
+            return {
+                lower: totalRateLowerData[index2023] || null,
+                upper: totalRateUpperData[index2023] || null
+            };
+        } else if (label.includes('Less than 65')) {
+            return {
+                lower: less65RateLowerData[index2023] || null,
+                upper: less65RateUpperData[index2023] || null
+            };
+        } else if (label.includes('65-79')) {
+            return {
+                lower: age65to79RateLowerData[index2023] || null,
+                upper: age65to79RateUpperData[index2023] || null
+            };
+        } else if (label.includes('80+')) {
+            return {
+                lower: plus80RateLowerData[index2023] || null,
+                upper: plus80RateUpperData[index2023] || null
+            };
+        }
+        
+        return { lower: null, upper: null };
+    }
+
+    // Replace your existing rateChartObj creation with this complete version
     rateChartObj = new Chart(ctx2, {
         type: 'line',
         data: {
             labels: allYears,
             datasets: [
                 // Total Rate - Historical
-                {
-                    label: 'Total',
-                    data: totalRateData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Less than 65 Rate - Historical - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65',
-                    data: less65RateData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // 65-79 Rate - Historical - Changed from '60-74'
-                {
-                    label: '65-79',
-                    data: age65to79RateData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc'
-                },
-                // 80+ Rate - Historical - Changed from '75+'
-                {
-                    label: '80+',
-                    data: plus80RateData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Rate - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalRateLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Total Rate - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalRateForecastData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true // Start hidden
-                },
-                // Total Rate - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalRateUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Lower Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Lower PI',
-                    data: less65RateLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Forecast - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 (Forecast)',
-                    data: less65RateForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Upper Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Upper PI',
-                    data: less65RateUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Lower Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Lower PI',
-                    data: age65to79RateLowerData,
-                    borderColor: 'rgba(33, 158, 188, 0.2)',
-                    backgroundColor: 'rgba(33, 158, 188, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Forecast - Changed from '60-74'
-                {
-                    label: '65-79 (Forecast)',
-                    data: age65to79RateForecastData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc',
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Upper Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Upper PI',
-                    data: age65to79RateUpperData,
-                    borderColor: 'rgba(33, 158, 188, 0)',
-                    backgroundColor: 'rgba(33, 158, 188, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Lower Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Lower PI',
-                    data: plus80RateLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Forecast - Changed from '75+'
-                {
-                    label: '80+ (Forecast)',
-                    data: plus80RateForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Upper Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Upper PI',
-                    data: plus80RateUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                }
+    // Total Rate - Historical
+            {
+                label: 'Total',
+                data: totalRateData,
+                borderColor: '#e41a1c',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'
+            },
+            // Less than 65 Rate - Historical
+            {
+                label: 'Less than 65',
+                data: less65RateData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8'
+            },
+            // 65-79 Rate - Historical
+            {
+                label: '65-79',
+                data: age65to79RateData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a'
+            },
+            // 80+ Rate - Historical
+            {
+                label: '80+',
+                data: plus80RateData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3'
+            },
+            // Total Rate - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalRateLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // Total Rate - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalRateForecastData,
+                borderColor: '#e41a1c',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'
+            },
+            // Total Rate - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalRateUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // Less than 65 Rate - Lower Confidence Interval
+            {
+                label: 'Less than 65 Lower PI',
+                data: less65RateLowerData,
+                borderColor: 'rgba(55, 126, 184, 0.2)',
+                backgroundColor: 'rgba(55, 126, 184, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // Less than 65 Rate - Forecast
+            {
+                label: 'Less than 65 (Forecast)',
+                data: less65RateForecastData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8'
+            },
+            // Less than 65 Rate - Upper Confidence Interval
+            {
+                label: 'Less than 65 Upper PI',
+                data: less65RateUpperData,
+                borderColor: 'rgba(55, 126, 184, 0)',
+                backgroundColor: 'rgba(55, 126, 184, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // 65-79 Rate - Lower Confidence Interval
+            {
+                label: '65-79 Lower PI',
+                data: age65to79RateLowerData,
+                borderColor: 'rgba(77, 175, 74, 0.2)',
+                backgroundColor: 'rgba(77, 175, 74, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // 65-79 Rate - Forecast
+            {
+                label: '65-79 (Forecast)',
+                data: age65to79RateForecastData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a'
+            },
+            // 65-79 Rate - Upper Confidence Interval
+            {
+                label: '65-79 Upper PI',
+                data: age65to79RateUpperData,
+                borderColor: 'rgba(77, 175, 74, 0)',
+                backgroundColor: 'rgba(77, 175, 74, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // 80+ Rate - Lower Confidence Interval
+            {
+                label: '80+ Lower PI',
+                data: plus80RateLowerData,
+                borderColor: 'rgba(152, 78, 163, 0.2)',
+                backgroundColor: 'rgba(152, 78, 163, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            },
+            // 80+ Rate - Forecast
+            {
+                label: '80+ (Forecast)',
+                data: plus80RateForecastData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3'
+            },
+            // 80+ Rate - Upper Confidence Interval
+            {
+                label: '80+ Upper PI',
+                data: plus80RateUpperData,
+                borderColor: 'rgba(152, 78, 163, 0)',
+                backgroundColor: 'rgba(152, 78, 163, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0
+            }
             ]
         },
         options: {
@@ -1472,13 +1506,18 @@ function updateIncidenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
+                            }
+                            
+                            // For forecast points (excluding 2022), add prediction interval to tooltip
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
                                 let lowerValue, upperValue;
                                 
                                 if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
                                     const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
                                     const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
                                     
@@ -1486,7 +1525,7 @@ function updateIncidenceCharts() {
                                         lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
                                         upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
                                     }
-                                } else if (label.includes('Less than 65')) { // Changed from 'Less than 60'
+                                } else if (label.includes('Less than 65')) {
                                     const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Lower PI');
                                     const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Less than 65 Upper PI');
                                     
@@ -1494,7 +1533,7 @@ function updateIncidenceCharts() {
                                         lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
                                         upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
                                     }
-                                } else if (label.includes('65-79')) { // Changed from '60-74'
+                                } else if (label.includes('65-79')) {
                                     const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Lower PI');
                                     const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '65-79 Upper PI');
                                     
@@ -1502,7 +1541,7 @@ function updateIncidenceCharts() {
                                         lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
                                         upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
                                     }
-                                } else if (label.includes('80+')) { // Changed from '75+'
+                                } else if (label.includes('80+')) {
                                     const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Lower PI');
                                     const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === '80+ Upper PI');
                                     
@@ -1512,15 +1551,84 @@ function updateIncidenceCharts() {
                                     }
                                 }
                                 
+                                // Build tooltip lines
+                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
+                                
                                 if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${value.toFixed(2)}`,
-                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-                                    ];
+                                    tooltipLines.push(`95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`);
                                 }
+                                
+                                // Only add percentage change for years after 2023
+                                if (currentYear > 2023) {
+                                    // Get 2023 baseline values
+                                    const baseline2023 = get2023BaselineValue(
+                                        label, allYears,
+                                        totalRateData, totalRateForecastData,
+                                        less65RateData, less65RateForecastData,
+                                        age65to79RateData, age65to79RateForecastData,
+                                        plus80RateData, plus80RateForecastData
+                                    );
+                                    
+                                    // Get 2023 PI values
+                                    const baseline2023PI = get2023BaselinePIValues(
+                                        label, allYears,
+                                        totalRateLowerData, totalRateUpperData,
+                                        less65RateLowerData, less65RateUpperData,
+                                        age65to79RateLowerData, age65to79RateUpperData,
+                                        plus80RateLowerData, plus80RateUpperData
+                                    );
+                                    
+                                    if (baseline2023 !== null && value !== null && 
+                                        baseline2023PI.lower !== null && baseline2023PI.upper !== null &&
+                                        lowerValue !== null && upperValue !== null) {
+                                        
+                                        // Calculate percentage change with CI
+                                        const changeResult = calcPercentageChangeWithCI(
+                                            baseline2023, value,
+                                            baseline2023PI.lower, baseline2023PI.upper,
+                                            lowerValue, upperValue
+                                        );
+                                        
+                                        if (changeResult) {
+                                            // Determine symbol based on percentage change value
+                                            let changeSymbol;
+                                            let changeColor;
+                                            
+                                            if (Math.abs(changeResult.pctChange) < 0.01) {
+                                                changeSymbol = '';
+                                                changeColor = '';
+                                            } else if (changeResult.pctChange > 0) {
+                                                changeSymbol = '▲';
+                                                changeColor = '+';
+                                            } else {
+                                                changeSymbol = '▼';
+                                                changeColor = '';
+                                            }
+                                            
+                                            tooltipLines.push(`Change from 2023: ${changeSymbol} ${changeColor}${changeResult.pctChange.toFixed(1)}%`);
+                                            tooltipLines.push(`95% CI: [${changeResult.ciLower.toFixed(1)}%, ${changeResult.ciUpper.toFixed(1)}%]`);
+                                        }
+                                    }
+                                } else if (currentYear === 2023) {
+                                    tooltipLines.push(`Baseline Year (2023)`);
+                                }
+                                
+                                return tooltipLines;
+                            } else {
+                                // For non-forecast points (historical data)
+                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
+                                
+                                // No percentage change shown for historical years
+                                
+                                return tooltipLines;
                             }
-                            
-                            return `${label}: ${value.toFixed(2)}`;
+                        },
+                        title: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                const year = tooltipItems[0].label;
+                                return `Year: ${year}`;
+                            }
+                            return '';
                         }
                     }
                 }
@@ -1532,10 +1640,10 @@ function updateIncidenceCharts() {
                         display: true,
                         text: ['Age-standardized Incidence Rate','(per 10,000 persons)'],
                         font: {
-                            size: 16,           // Change font size here
-                            family: 'Arial'     // Change font family here
+                            size: 16,
+                            family: 'Arial'
                         },
-                        color: '#333333'        // Change color here
+                        color: '#333333'
                     }
                 },
                 x: {
@@ -1543,12 +1651,11 @@ function updateIncidenceCharts() {
                         display: true,
                         text: 'Year',
                         font: {
-                            size: 16,           // Change font size here
-                            family: 'Arial'     // Change font family here
+                            size: 16,
+                            family: 'Arial'
                         },
-                        color: '#333333'        // Change color here
-                    },
-                    //max: filteredYears.length - 1 // Initially show only historical years
+                        color: '#333333'
+                    }
                 }
             }
         }
@@ -1671,189 +1778,189 @@ function updatePrevalenceCharts() {
             labels: allYears,
             datasets: [
                 // Total Cases - Historical
-                {
-                    label: 'Total',
-                    data: totalPrevData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Less than 65 Cases - Historical - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65',
-                    data: less65PrevData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // 65-79 Cases - Historical - Changed from '60-74'
-                {
-                    label: '65-79',
-                    data: age65to79PrevData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc'
-                },
-                // 80+ Cases - Historical - Changed from '75+'
-                {
-                    label: '80+',
-                    data: plus80PrevData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Cases - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalPrevLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Total Cases - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalPrevForecastData,
-                    borderColor: '#fb8500', 
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true // Start hidden
-                },
-                // Total Cases - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalPrevUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    ////hidden: true // Start hidden
-                },
-                // Less than 65 Cases - Lower Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Lower PI',
-                    data: less65PrevLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Cases - Forecast - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 (Forecast)',
-                    data: less65PrevForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Cases - Upper Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Upper PI',
-                    data: less65PrevUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Cases - Lower Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Lower PI',
-                    data: age65to79PrevLowerData,
-                    borderColor: 'rgba(33, 158, 188, 0.2)',
-                    backgroundColor: 'rgba(33, 158, 188, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Cases - Forecast - Changed from '60-74'
-                {
-                    label: '65-79 (Forecast)',
-                    data: age65to79PrevForecastData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc',
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Cases - Upper Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Upper PI',
-                    data: age65to79PrevUpperData,
-                    borderColor: 'rgba(33, 158, 188, 0)',
-                    backgroundColor: 'rgba(33, 158, 188, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Cases - Lower Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Lower PI',
-                    data: plus80PrevLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Cases - Forecast - Changed from '75+'
-                {
-                    label: '80+ (Forecast)',
-                    data: plus80PrevForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true // Start hidden
-                },
-                // 80+ Cases - Upper Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Upper PI',
-                    data: plus80PrevUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                }
+            {
+                label: 'Total',
+                data: totalPrevData,
+                borderColor: '#e41a1c',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'
+            },
+            // Less than 65 Cases - Historical - Changed from 'Less than 60'
+            {
+                label: 'Less than 65',
+                data: less65PrevData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8'
+            },
+            // 65-79 Cases - Historical - Changed from '60-74'
+            {
+                label: '65-79',
+                data: age65to79PrevData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a'
+            },
+            // 80+ Cases - Historical - Changed from '75+'
+            {
+                label: '80+',
+                data: plus80PrevData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3'
+            },
+            // Total Cases - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalPrevLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // Total Cases - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalPrevForecastData,
+                borderColor: '#e41a1c', 
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c',
+                //hidden: true // Start hidden
+            },
+            // Total Cases - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalPrevUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                ////hidden: true // Start hidden
+            },
+            // Less than 65 Cases - Lower Confidence Interval - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 Lower PI',
+                data: less65PrevLowerData,
+                borderColor: 'rgba(55, 126, 184, 0.2)',
+                backgroundColor: 'rgba(55, 126, 184, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // Less than 65 Cases - Forecast - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 (Forecast)',
+                data: less65PrevForecastData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8',
+                //hidden: true // Start hidden
+            },
+            // Less than 65 Cases - Upper Confidence Interval - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 Upper PI',
+                data: less65PrevUpperData,
+                borderColor: 'rgba(55, 126, 184, 0)',
+                backgroundColor: 'rgba(55, 126, 184, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 65-79 Cases - Lower Confidence Interval - Changed from '60-74'
+            {
+                label: '65-79 Lower PI',
+                data: age65to79PrevLowerData,
+                borderColor: 'rgba(77, 175, 74, 0.2)',
+                backgroundColor: 'rgba(77, 175, 74, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 65-79 Cases - Forecast - Changed from '60-74'
+            {
+                label: '65-79 (Forecast)',
+                data: age65to79PrevForecastData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a',
+                //hidden: true // Start hidden
+            },
+            // 65-79 Cases - Upper Confidence Interval - Changed from '60-74'
+            {
+                label: '65-79 Upper PI',
+                data: age65to79PrevUpperData,
+                borderColor: 'rgba(77, 175, 74, 0)',
+                backgroundColor: 'rgba(77, 175, 74, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 80+ Cases - Lower Confidence Interval - Changed from '75+'
+            {
+                label: '80+ Lower PI',
+                data: plus80PrevLowerData,
+                borderColor: 'rgba(152, 78, 163, 0.2)',
+                backgroundColor: 'rgba(152, 78, 163, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 80+ Cases - Forecast - Changed from '75+'
+            {
+                label: '80+ (Forecast)',
+                data: plus80PrevForecastData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3',
+                //hidden: true // Start hidden
+            },
+            // 80+ Cases - Upper Confidence Interval - Changed from '75+'
+            {
+                label: '80+ Upper PI',
+                data: plus80PrevUpperData,
+                borderColor: 'rgba(152, 78, 163, 0)',
+                backgroundColor: 'rgba(152, 78, 163, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            }
             ]
         },
         options: {
@@ -2050,189 +2157,189 @@ function updatePrevalenceCharts() {
             labels: allYears,
             datasets: [
                 // Total Rate - Historical
-                {
-                    label: 'Total',
-                    data: totalRateData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Less than 65 Rate - Historical - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65',
-                    data: less65RateData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // 65-79 Rate - Historical - Changed from '60-74'
-                {
-                    label: '65-79',
-                    data: age65to79RateData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc'
-                },
-                // 80+ Rate - Historical - Changed from '75+'
-                {
-                    label: '80+',
-                    data: plus80RateData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Rate - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalRateLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Total Rate - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalRateForecastData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true // Start hidden
-                },
-                // Total Rate - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalRateUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Lower Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Lower PI',
-                    data: less65RateLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Forecast - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 (Forecast)',
-                    data: less65RateForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true // Start hidden
-                },
-                // Less than 65 Rate - Upper Confidence Interval - Changed from 'Less than 60'
-                {
-                    label: 'Less than 65 Upper PI',
-                    data: less65RateUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Lower Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Lower PI',
-                    data: age65to79RateLowerData,
-                    borderColor: 'rgba(33, 158, 188, 0.2)',
-                    backgroundColor: 'rgba(33, 158, 188, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Forecast - Changed from '60-74'
-                {
-                    label: '65-79 (Forecast)',
-                    data: age65to79RateForecastData,
-                    borderColor: '#219ebc',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#219ebc',
-                    //hidden: true // Start hidden
-                },
-                // 65-79 Rate - Upper Confidence Interval - Changed from '60-74'
-                {
-                    label: '65-79 Upper PI',
-                    data: age65to79RateUpperData,
-                    borderColor: 'rgba(33, 158, 188, 0)',
-                    backgroundColor: 'rgba(33, 158, 188, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Lower Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Lower PI',
-                    data: plus80RateLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Forecast - Changed from '75+'
-                {
-                    label: '80+ (Forecast)',
-                    data: plus80RateForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true // Start hidden
-                },
-                // 80+ Rate - Upper Confidence Interval - Changed from '75+'
-                {
-                    label: '80+ Upper PI',
-                    data: plus80RateUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true // Start hidden
-                }
+            {
+                label: 'Total',
+                data: totalRateData,
+                borderColor: '#e41a1c',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'
+            },
+            // Less than 65 Rate - Historical - Changed from 'Less than 60'
+            {
+                label: 'Less than 65',
+                data: less65RateData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8'
+            },
+            // 65-79 Rate - Historical - Changed from '60-74'
+            {
+                label: '65-79',
+                data: age65to79RateData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a'
+            },
+            // 80+ Rate - Historical - Changed from '75+'
+            {
+                label: '80+',
+                data: plus80RateData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3'
+            },
+            // Total Rate - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalRateLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // Total Rate - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalRateForecastData,
+                borderColor: '#e41a1c',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c',
+                //hidden: true // Start hidden
+            },
+            // Total Rate - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalRateUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // Less than 65 Rate - Lower Confidence Interval - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 Lower PI',
+                data: less65RateLowerData,
+                borderColor: 'rgba(55, 126, 184, 0.2)',
+                backgroundColor: 'rgba(55, 126, 184, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // Less than 65 Rate - Forecast - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 (Forecast)',
+                data: less65RateForecastData,
+                borderColor: '#377eb8',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#377eb8',
+                //hidden: true // Start hidden
+            },
+            // Less than 65 Rate - Upper Confidence Interval - Changed from 'Less than 60'
+            {
+                label: 'Less than 65 Upper PI',
+                data: less65RateUpperData,
+                borderColor: 'rgba(55, 126, 184, 0)',
+                backgroundColor: 'rgba(55, 126, 184, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 65-79 Rate - Lower Confidence Interval - Changed from '60-74'
+            {
+                label: '65-79 Lower PI',
+                data: age65to79RateLowerData,
+                borderColor: 'rgba(77, 175, 74, 0.2)',
+                backgroundColor: 'rgba(77, 175, 74, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 65-79 Rate - Forecast - Changed from '60-74'
+            {
+                label: '65-79 (Forecast)',
+                data: age65to79RateForecastData,
+                borderColor: '#4daf4a',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#4daf4a',
+                //hidden: true // Start hidden
+            },
+            // 65-79 Rate - Upper Confidence Interval - Changed from '60-74'
+            {
+                label: '65-79 Upper PI',
+                data: age65to79RateUpperData,
+                borderColor: 'rgba(77, 175, 74, 0)',
+                backgroundColor: 'rgba(77, 175, 74, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 80+ Rate - Lower Confidence Interval - Changed from '75+'
+            {
+                label: '80+ Lower PI',
+                data: plus80RateLowerData,
+                borderColor: 'rgba(152, 78, 163, 0.2)',
+                backgroundColor: 'rgba(152, 78, 163, 0.2)',
+                fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            },
+            // 80+ Rate - Forecast - Changed from '75+'
+            {
+                label: '80+ (Forecast)',
+                data: plus80RateForecastData,
+                borderColor: '#984ea3',
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#984ea3',
+                //hidden: true // Start hidden
+            },
+            // 80+ Rate - Upper Confidence Interval - Changed from '75+'
+            {
+                label: '80+ Upper PI',
+                data: plus80RateUpperData,
+                borderColor: 'rgba(152, 78, 163, 0)',
+                backgroundColor: 'rgba(152, 78, 163, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+                //hidden: true // Start hidden
+            }
             ]
         },
         options: {
