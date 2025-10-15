@@ -104,7 +104,7 @@
         .legend-item {
             display: flex;
             align-items: center;
-            margin: 0 10px;
+            margin: 0 5px;
             cursor: pointer;
         }
         
@@ -460,17 +460,17 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
     const dataItems = [
         {
             label: 'Total',
-            color: '#fb8500',
+            color: '#e41a1c',  // Changed to RED
             datasetIndex: 0
         },
         {
             label: 'Male',
-            color: '#023047',
+            color: '#2563eb',  // Changed to BLUE
             datasetIndex: 1
         },
         {
             label: 'Female',
-            color: '#8ecae6',
+            color: '#22c55e',  // Changed to GREEN
             datasetIndex: 2
         }
     ];
@@ -722,139 +722,130 @@ function updateIncidenceCharts() {
                 {
                     label: 'Total  ',
                     data: totalCasesData,
-                    borderColor: '#fb8500',
+                    borderColor: '#e41a1c',  // Changed to RED
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
+                    pointBackgroundColor: '#e41a1c'  // Changed to RED
                 },
                 // Male Cases - Historical
                 {
                     label: 'Male  ',
                     data: maleCasesData,
-                    borderColor: '#023047',
+                    borderColor: '#2563eb',  // Changed to BLUE
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#023047'
+                    pointBackgroundColor: '#2563eb'  // Changed to BLUE
                 },
                 // Female Cases - Historical
                 {
                     label: 'Female  ',
                     data: femaleCasesData,
-                    borderColor: '#8ecae6',
+                    borderColor: '#22c55e',  // Changed to GREEN
                     fill: false,
                     tension: 0.1,
                     pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
+                    pointBackgroundColor: '#22c55e'  // Changed to GREEN
                 },
                 // Total Cases - Lower Confidence Interval
                 {
                     label: 'Total Lower PI',
                     data: totalCasesLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    borderColor: 'rgba(228, 26, 28, 0.2)',  // RED with transparency
+                    backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                    fill: '+2',
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 },
                 // Total Cases - Forecast
                 {
                     label: 'Total (Forecast)',
                     data: totalCasesForecastData,
-                    borderColor: '#fb8500', 
+                    borderColor: '#e41a1c',  // RED
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true// Start hidden
+                    pointBackgroundColor: '#e41a1c',  // RED
                 },
                 // Total Cases - Upper Confidence Interval
                 {
                     label: 'Total Upper PI',
                     data: totalCasesUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
+                    borderColor: 'rgba(228, 26, 28, 0)',
+                    backgroundColor: 'rgba(228, 26, 28, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 },
                 // Male Cases - Lower Confidence Interval
                 {
                     label: 'Male Lower PI',
                     data: maleCasesLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    borderColor: 'rgba(37, 99, 235, 0.2)',  // BLUE with transparency
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    fill: '+2',
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 },
                 // Male Cases - Forecast
                 {
                     label: 'Male (Forecast)',
                     data: maleCasesForecastData,
-                    borderColor: '#023047',
+                    borderColor: '#2563eb',  // BLUE
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true// Start hidden
+                    pointBackgroundColor: '#2563eb',  // BLUE
                 },
                 // Male Cases - Upper Confidence Interval
                 {
                     label: 'Male Upper PI',
                     data: maleCasesUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
+                    borderColor: 'rgba(37, 99, 235, 0)',
+                    backgroundColor: 'rgba(37, 99, 235, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 },
                 // Female Cases - Lower Confidence Interval
                 {
                     label: 'Female Lower PI',
                     data: femaleCasesLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
+                    borderColor: 'rgba(34, 197, 94, 0.2)',  // GREEN with transparency
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    fill: '+2',
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 },
                 // Female Cases - Forecast
                 {
                     label: 'Female (Forecast)',
                     data: femaleCasesForecastData,
-                    borderColor: '#8ecae6',
+                    borderColor: '#22c55e',  // GREEN
                     fill: false,
                     tension: 0.1,
                     borderDash: [5, 5],
                     pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true// Start hidden
+                    pointBackgroundColor: '#22c55e',  // GREEN
                 },
                 // Female Cases - Upper Confidence Interval
                 {
                     label: 'Female Upper PI',
                     data: femaleCasesUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
+                    borderColor: 'rgba(34, 197, 94, 0)',
+                    backgroundColor: 'rgba(34, 197, 94, 0)',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 0,
                     borderWidth: 0,
-                    //hidden: true// Start hidden
                 }
             ]
         },
@@ -1026,146 +1017,137 @@ function updateIncidenceCharts() {
         type: 'line',
         data: {
             labels: allYears,
-            datasets: [
-                // Total Rate - Historical
-                {
-                    label: 'Total  ',
-                    data: totalRateData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Male Rate - Historical
-                {
-                    label: 'Male  ',
-                    data: maleRateData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // Female Rate - Historical
-                {
-                    label: 'Female  ',
-                    data: femaleRateData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Rate - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalRateLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Total Rate - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalRateForecastData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true// Start hidden
-                },
-                // Total Rate - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalRateUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Lower Confidence Interval
-                {
-                    label: 'Male Lower PI',
-                    data: maleRateLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Forecast
-                {
-                    label: 'Male (Forecast)',
-                    data: maleRateForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Upper Confidence Interval
-                {
-                    label: 'Male Upper PI',
-                    data: maleRateUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Lower Confidence Interval
-                {
-                    label: 'Female Lower PI',
-                    data: femaleRateLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Forecast
-                {
-                    label: 'Female (Forecast)',
-                    data: femaleRateForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Upper Confidence Interval
-                {
-                    label: 'Female Upper PI',
-                    data: femaleRateUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                }
-            ]
+        datasets: [
+            // Total Rate - Historical
+            {
+                label: 'Total  ',
+                data: totalRateData,
+                borderColor: '#e41a1c',  // Changed to RED
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'  // Changed to RED
+            },
+            // Male Rate - Historical
+            {
+                label: 'Male  ',
+                data: maleRateData,
+                borderColor: '#2563eb',  // Changed to BLUE
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb'  // Changed to BLUE
+            },
+            // Female Rate - Historical
+            {
+                label: 'Female  ',
+                data: femaleRateData,
+                borderColor: '#22c55e',  // Changed to GREEN
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e'  // Changed to GREEN
+            },
+            // Total Rate - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalRateLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',  // RED with transparency
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Total Rate - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalRateForecastData,
+                borderColor: '#e41a1c',  // RED
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c',  // RED
+            },
+            // Total Rate - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalRateUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Rate - Lower Confidence Interval
+            {
+                label: 'Male Lower PI',
+                data: maleRateLowerData,
+                borderColor: 'rgba(37, 99, 235, 0.2)',  // BLUE with transparency
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Rate - Forecast
+            {
+                label: 'Male (Forecast)',
+                data: maleRateForecastData,
+                borderColor: '#2563eb',  // BLUE
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb',  // BLUE
+            },
+            // Male Rate - Upper Confidence Interval
+            {
+                label: 'Male Upper PI',
+                data: maleRateUpperData,
+                borderColor: 'rgba(37, 99, 235, 0)',
+                backgroundColor: 'rgba(37, 99, 235, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Rate - Lower Confidence Interval
+            {
+                label: 'Female Lower PI',
+                data: femaleRateLowerData,
+                borderColor: 'rgba(34, 197, 94, 0.2)',  // GREEN with transparency
+                backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Rate - Forecast
+            {
+                label: 'Female (Forecast)',
+                data: femaleRateForecastData,
+                borderColor: '#22c55e',  // GREEN
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e',  // GREEN
+            },
+            // Female Rate - Upper Confidence Interval
+            {
+                label: 'Female Upper PI',
+                data: femaleRateUpperData,
+                borderColor: 'rgba(34, 197, 94, 0)',
+                backgroundColor: 'rgba(34, 197, 94, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            }
+        ]
         },
         options: {
             aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile            
@@ -1354,144 +1336,135 @@ function updatePrevalenceCharts() {
         data: {
             labels: allYears,
             datasets: [
-                // Total Cases - Historical
-                {
-                    label: 'Total  ',
-                    data: totalPrevData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Male Cases - Historical
-                {
-                    label: 'Male  ',
-                    data: malePrevData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // Female Cases - Historical
-                {
-                    label: 'Female  ',
-                    data: femalePrevData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Cases - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalPrevLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Total Cases - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalPrevForecastData,
-                    borderColor: '#fb8500', 
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true// Start hidden
-                },
-                // Total Cases - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalPrevUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Cases - Lower Confidence Interval
-                {
-                    label: 'Male Lower PI',
-                    data: malePrevLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Cases - Forecast
-                {
-                    label: 'Male (Forecast)',
-                    data: malePrevForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true// Start hidden
-                },
-                // Male Cases - Upper Confidence Interval
-                {
-                    label: 'Male Upper PI',
-                    data: malePrevUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Cases - Lower Confidence Interval
-                {
-                    label: 'Female Lower PI',
-                    data: femalePrevLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Cases - Forecast
-                {
-                    label: 'Female (Forecast)',
-                    data: femalePrevForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true// Start hidden
-                },
-                // Female Cases - Upper Confidence Interval
-                {
-                    label: 'Female Upper PI',
-                    data: femalePrevUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                }
+            // Total Cases - Historical
+            {
+                label: 'Total  ',
+                data: totalPrevData,
+                borderColor: '#e41a1c',  // Changed to RED
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'  // Changed to RED
+            },
+            // Male Cases - Historical
+            {
+                label: 'Male  ',
+                data: malePrevData,
+                borderColor: '#2563eb',  // Changed to BLUE
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb'  // Changed to BLUE
+            },
+            // Female Cases - Historical
+            {
+                label: 'Female  ',
+                data: femalePrevData,
+                borderColor: '#22c55e',  // Changed to GREEN
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e'  // Changed to GREEN
+            },
+            // Total Cases - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalPrevLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',  // RED with transparency
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Total Cases - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalPrevForecastData,
+                borderColor: '#e41a1c',  // RED
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c',  // RED
+            },
+            // Total Cases - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalPrevUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Cases - Lower Confidence Interval
+            {
+                label: 'Male Lower PI',
+                data: malePrevLowerData,
+                borderColor: 'rgba(37, 99, 235, 0.2)',  // BLUE with transparency
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Cases - Forecast
+            {
+                label: 'Male (Forecast)',
+                data: malePrevForecastData,
+                borderColor: '#2563eb',  // BLUE
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb',  // BLUE
+            },
+            // Male Cases - Upper Confidence Interval
+            {
+                label: 'Male Upper PI',
+                data: malePrevUpperData,
+                borderColor: 'rgba(37, 99, 235, 0)',
+                backgroundColor: 'rgba(37, 99, 235, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Cases - Lower Confidence Interval
+            {
+                label: 'Female Lower PI',
+                data: femalePrevLowerData,
+                borderColor: 'rgba(34, 197, 94, 0.2)',  // GREEN with transparency
+                backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Cases - Forecast
+            {
+                label: 'Female (Forecast)',
+                data: femalePrevForecastData,
+                borderColor: '#22c55e',  // GREEN
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e',  // GREEN
+            },
+            // Female Cases - Upper Confidence Interval
+            {
+                label: 'Female Upper PI',
+                data: femalePrevUpperData,
+                borderColor: 'rgba(34, 197, 94, 0)',
+                backgroundColor: 'rgba(34, 197, 94, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            }
             ]
         },
         options: {
@@ -1663,145 +1636,136 @@ function updatePrevalenceCharts() {
         data: {
             labels: allYears,
             datasets: [
-                // Total Rate - Historical
-                {
-                    label: 'Total  ',
-                    data: totalRateData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500'
-                },
-                // Male Rate - Historical
-                {
-                    label: 'Male  ',
-                    data: maleRateData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047'
-                },
-                // Female Rate - Historical
-                {
-                    label: 'Female  ',
-                    data: femaleRateData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6'
-                },
-                // Total Rate - Lower Confidence Interval
-                {
-                    label: 'Total Lower PI',
-                    data: totalRateLowerData,
-                    borderColor: 'rgba(255, 0, 0, 0.2)',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Total Rate - Forecast
-                {
-                    label: 'Total (Forecast)',
-                    data: totalRateForecastData,
-                    borderColor: '#fb8500',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fb8500',
-                    //hidden: true// Start hidden
-                },
-                // Total Rate - Upper Confidence Interval
-                {
-                    label: 'Total Upper PI',
-                    data: totalRateUpperData,
-                    borderColor: 'rgba(255, 0, 0, 0)',
-                    backgroundColor: 'rgba(255, 0, 0, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Lower Confidence Interval
-                {
-                    label: 'Male Lower PI',
-                    data: maleRateLowerData,
-                    borderColor: 'rgba(0, 0, 255, 0.2)',
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Forecast
-                {
-                    label: 'Male (Forecast)',
-                    data: maleRateForecastData,
-                    borderColor: '#023047',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#023047',
-                    //hidden: true// Start hidden
-                },
-                // Male Rate - Upper Confidence Interval
-                {
-                    label: 'Male Upper PI',
-                    data: maleRateUpperData,
-                    borderColor: 'rgba(0, 0, 255, 0)',
-                    backgroundColor: 'rgba(0, 0, 255, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Lower Confidence Interval
-                {
-                    label: 'Female Lower PI',
-                    data: femaleRateLowerData,
-                    borderColor: 'rgba(255, 105, 180, 0.2)',
-                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
-                    fill: '+2', // Fill to dataset with index +2 (the upper interval)
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Forecast
-                {
-                    label: 'Female (Forecast)',
-                    data: femaleRateForecastData,
-                    borderColor: '#8ecae6',
-                    fill: false,
-                    tension: 0.1,
-                    borderDash: [5, 5],
-                    pointRadius: 3,
-                    pointBackgroundColor: '#8ecae6',
-                    //hidden: true// Start hidden
-                },
-                // Female Rate - Upper Confidence Interval
-                {
-                    label: 'Female Upper PI',
-                    data: femaleRateUpperData,
-                    borderColor: 'rgba(255, 105, 180, 0)',
-                    backgroundColor: 'rgba(255, 105, 180, 0)',
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    //hidden: true// Start hidden
-                }
-            ]
+            // Total Rate - Historical
+            {
+                label: 'Total  ',
+                data: totalRateData,
+                borderColor: '#e41a1c',  // Changed to RED
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c'  // Changed to RED
+            },
+            // Male Rate - Historical
+            {
+                label: 'Male  ',
+                data: maleRateData,
+                borderColor: '#2563eb',  // Changed to BLUE
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb'  // Changed to BLUE
+            },
+            // Female Rate - Historical
+            {
+                label: 'Female  ',
+                data: femaleRateData,
+                borderColor: '#22c55e',  // Changed to GREEN
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e'  // Changed to GREEN
+            },
+            // Total Rate - Lower Confidence Interval
+            {
+                label: 'Total Lower PI',
+                data: totalRateLowerData,
+                borderColor: 'rgba(228, 26, 28, 0.2)',  // RED with transparency
+                backgroundColor: 'rgba(228, 26, 28, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Total Rate - Forecast
+            {
+                label: 'Total (Forecast)',
+                data: totalRateForecastData,
+                borderColor: '#e41a1c',  // RED
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#e41a1c',  // RED
+            },
+            // Total Rate - Upper Confidence Interval
+            {
+                label: 'Total Upper PI',
+                data: totalRateUpperData,
+                borderColor: 'rgba(228, 26, 28, 0)',
+                backgroundColor: 'rgba(228, 26, 28, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Rate - Lower Confidence Interval
+            {
+                label: 'Male Lower PI',
+                data: maleRateLowerData,
+                borderColor: 'rgba(37, 99, 235, 0.2)',  // BLUE with transparency
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Male Rate - Forecast
+            {
+                label: 'Male (Forecast)',
+                data: maleRateForecastData,
+                borderColor: '#2563eb',  // BLUE
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#2563eb',  // BLUE
+            },
+            // Male Rate - Upper Confidence Interval
+            {
+                label: 'Male Upper PI',
+                data: maleRateUpperData,
+                borderColor: 'rgba(37, 99, 235, 0)',
+                backgroundColor: 'rgba(37, 99, 235, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Rate - Lower Confidence Interval
+            {
+                label: 'Female Lower PI',
+                data: femaleRateLowerData,
+                borderColor: 'rgba(34, 197, 94, 0.2)',  // GREEN with transparency
+                backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                fill: '+2',
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            },
+            // Female Rate - Forecast
+            {
+                label: 'Female (Forecast)',
+                data: femaleRateForecastData,
+                borderColor: '#22c55e',  // GREEN
+                fill: false,
+                tension: 0.1,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                pointBackgroundColor: '#22c55e',  // GREEN
+            },
+            // Female Rate - Upper Confidence Interval
+            {
+                label: 'Female Upper PI',
+                data: femaleRateUpperData,
+                borderColor: 'rgba(34, 197, 94, 0)',
+                backgroundColor: 'rgba(34, 197, 94, 0)',
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                borderWidth: 0,
+            }
+        ]
         },
         options: {
             aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile            
@@ -2400,7 +2364,7 @@ function createKMCurve() {
         // Color scale
         const color = d3.scaleOrdinal()
             .domain(["sex.=F", "sex.=M", "Total"])
-            .range(["#8ecae6", "#023047", "#fb8500"]);
+            .range(["#22c55e", "#2563eb", "#e41a1c"]);  // GREEN, BLUE, RED
 
         // Define a mapping for legend labels
         const labelMapping = {
