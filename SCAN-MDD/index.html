@@ -333,6 +333,46 @@ let prevForecastVisible = {
     female: true
 };
 
+// Function to calculate AAPC (Average Annual Percent Change)
+function calculateAAPG(forecastData, startIndex, endIndex) {
+    if (!forecastData || startIndex < 0 || endIndex >= forecastData.length || startIndex >= endIndex) {
+        return null;
+    }
+    
+    const annualChanges = [];
+    
+    // Calculate year-over-year percent changes
+    for (let i = startIndex; i < endIndex; i++) {
+        const currentValue = forecastData[i];
+        const nextValue = forecastData[i + 1];
+        
+        if (currentValue && nextValue && currentValue > 0) {
+            const annualChange = ((nextValue - currentValue) / currentValue) * 100;
+            annualChanges.push(annualChange);
+        }
+    }
+    
+    // Return average of annual changes
+    if (annualChanges.length > 0) {
+        return annualChanges.reduce((sum, change) => sum + change, 0) / annualChanges.length;
+    }
+    
+    return null;
+}
+
+// Function to get indices for 2023-2032 period for AAPC calculation
+function getAAPCIndices(allYears) {
+    const index2023 = allYears.indexOf(2023);
+    const index2032 = allYears.indexOf(2032);
+    
+    if (index2023 === -1 || index2032 === -1) return { startIndex: -1, endIndex: -1 };
+    
+    return {
+        startIndex: index2023,
+        endIndex: index2032
+    };
+}
+
 function openTab(evt, tabName) {
     const tabs = document.getElementsByClassName("tab");
     const buttons = document.getElementsByClassName("tab-button");
@@ -856,44 +896,46 @@ function updateIncidenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
+                            }
+                            
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${Math.round(value)}`];
                                 
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
                                 if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = totalCasesForecastData;
                                 } else if (label.includes('Male')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = maleCasesForecastData;
                                 } else if (label.includes('Female')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    forecastData = femaleCasesForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) { // Only show symbols if change is >= 0.01% when rounded
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
                                     }
                                 }
                                 
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${Math.round(value)}`,
-                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-                                    ];
-                                }
+                                return tooltipLines;
                             }
                             
                             return `${label}: ${Math.round(value)}`;
@@ -1159,44 +1201,46 @@ function updateIncidenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
+                            }
+                            
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
                                 
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
                                 if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = totalRateForecastData;
                                 } else if (label.includes('Male')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = maleRateForecastData;
                                 } else if (label.includes('Female')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    forecastData = femaleRateForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) {
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
                                     }
                                 }
                                 
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${value.toFixed(2)}`,
-                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-                                    ];
-                                }
+                                return tooltipLines;
                             }
                             
                             return `${label}: ${value.toFixed(2)}`;
@@ -1472,51 +1516,53 @@ function updatePrevalenceCharts() {
                 legend: {
                     display: false // Disable built-in legend
                 },
-                tooltip: {
+               tooltip: {
                     callbacks: {
                         label: function(context) {
                             const label = context.dataset.label || '';
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
+                            }
+                            
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${Math.round(value)}`];
                                 
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
                                 if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = totalPrevForecastData;
                                 } else if (label.includes('Male')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = malePrevForecastData;
                                 } else if (label.includes('Female')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    forecastData = femalePrevForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) {
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
                                     }
                                 }
                                 
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${Math.round(value)}`,
-                                        `95% PI: [${Math.round(lowerValue)}, ${Math.round(upperValue)}]`
-                                    ];
-                                }
+                                return tooltipLines;
                             }
                             
                             return `${label}: ${Math.round(value)}`;
@@ -1781,44 +1827,46 @@ function updatePrevalenceCharts() {
                             if (label.includes('PI')) return null;
                             
                             const value = context.parsed.y || 0;
+                            const currentYear = parseInt(context.label);
                             
-                            // For forecast points, add prediction interval to tooltip
-                            if (label.includes('Forecast') && value) {
-                                let lowerValue, upperValue;
+                            // Skip forecast tooltips for 2022
+                            if (currentYear === 2022 && label.includes('Forecast')) {
+                                return null;
+                            }
+                            
+                            // For forecast points (excluding 2022), add AAPC information
+                            if (label.includes('Forecast') && value && currentYear !== 2022) {
+                                let tooltipLines = [`${label}: ${value.toFixed(2)}`];
                                 
+                                // Calculate AAPC from 2023 to 2032
+                                let forecastData;
                                 if (label.includes('Total')) {
-                                    // Find the indices for the prediction intervals
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Total Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = totalRateForecastData;
                                 } else if (label.includes('Male')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Male Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
-                                    }
+                                    forecastData = maleRateForecastData;
                                 } else if (label.includes('Female')) {
-                                    const lowerPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Lower PI');
-                                    const upperPIIndex = context.chart.data.datasets.findIndex(ds => ds.label === 'Female Upper PI');
-                                    
-                                    if (lowerPIIndex !== -1 && upperPIIndex !== -1) {
-                                        lowerValue = context.chart.data.datasets[lowerPIIndex].data[context.dataIndex];
-                                        upperValue = context.chart.data.datasets[upperPIIndex].data[context.dataIndex];
+                                    forecastData = femaleRateForecastData;
+                                }
+                                
+                                if (forecastData) {
+                                    const aapgIndices = getAAPCIndices(allYears);
+                                    if (aapgIndices.startIndex !== -1 && aapgIndices.endIndex !== -1) {
+                                        const aapc = calculateAAPG(forecastData, aapgIndices.startIndex, aapgIndices.endIndex);
+                                        if (aapc !== null) {
+                                            let aapgSymbol = '';
+                                            let aapgSign = '';
+                                            
+                                            if (Math.abs(aapc) >= 0.005) {
+                                                aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                aapgSign = aapc > 0 ? '+' : '';
+                                            }
+                                            
+                                            tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                        }
                                     }
                                 }
                                 
-                                if (lowerValue && upperValue) {
-                                    return [
-                                        `${label}: ${value.toFixed(2)}`,
-                                        `95% PI: [${lowerValue.toFixed(2)}, ${upperValue.toFixed(2)}]`
-                                    ];
-                                }
+                                return tooltipLines;
                             }
                             
                             return `${label}: ${value.toFixed(2)}`;
@@ -1990,49 +2038,56 @@ function updateCostChart() {
                             const value = context.raw;
                             if (value === null) return null;
                             
+                            const currentYear = parseInt(context.label);
+                            const isForecast = context.dataIndex >= historicalYears.length;
+                            
                             // Add (Forecast) label for forecast years
                             let label = context.dataset.label;
-                            if (context.dataIndex >= historicalYears.length) {
+                            if (isForecast) {
                                 label += ' (Forecast)';
                                 
-                                // If it's a forecast, add prediction interval if available
-                                if (context.dataset.label === 'Inpatient Cost') {
-                                    const lower = forecastIPLower[context.dataIndex - historicalYears.length];
-                                    const upper = forecastIPUpper[context.dataIndex - historicalYears.length];
-                                    if (lower && upper) {
-                                        const lowerInMillions = (lower / 1000000).toFixed(2);
-                                        const upperInMillions = (upper / 1000000).toFixed(2);
-                                        return [
-                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
-                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-                                        ];
+                                // Format to millions with 2 decimal places
+                                const valueInMillions = (value / 1000000).toFixed(2);
+                                let tooltipLines = [`${label}: HK$${valueInMillions} million`];
+                                
+                                // Add AAPC for forecast years only (excluding 2022 if it exists)
+                                if (currentYear !== 2022) {
+                                    // Get the appropriate forecast data array
+                                    let forecastData;
+                                    if (context.dataset.label === 'Inpatient Cost') {
+                                        forecastData = forecastIP;
+                                    } else if (context.dataset.label === 'Outpatient Cost') {
+                                        forecastData = forecastOP;
+                                    } else if (context.dataset.label === 'Accident & Emergency Cost') {
+                                        forecastData = forecastAE;
                                     }
-                                } else if (context.dataset.label === 'Outpatient Cost') {
-                                    const lower = forecastOPLower[context.dataIndex - historicalYears.length];
-                                    const upper = forecastOPUpper[context.dataIndex - historicalYears.length];
-                                    if (lower && upper) {
-                                        const lowerInMillions = (lower / 1000000).toFixed(2);
-                                        const upperInMillions = (upper / 1000000).toFixed(2);
-                                        return [
-                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
-                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-                                        ];
-                                    }
-                                } else if (context.dataset.label === 'Accident & Emergency Cost') {
-                                    const lower = forecastAELower[context.dataIndex - historicalYears.length];
-                                    const upper = forecastAEUpper[context.dataIndex - historicalYears.length];
-                                    if (lower && upper) {
-                                        const lowerInMillions = (lower / 1000000).toFixed(2);
-                                        const upperInMillions = (upper / 1000000).toFixed(2);
-                                        return [
-                                            `${label}: HK$${(value / 1000000).toFixed(2)} million`,
-                                            `95% PI: [HK$${lowerInMillions}M, HK$${upperInMillions}M]`
-                                        ];
+                                    
+                                    if (forecastData && costForecastYears.length > 0) {
+                                        // Calculate AAPC for 2023-2032 period within forecast data
+                                        const index2023 = costForecastYears.indexOf(2023);
+                                        const index2032 = costForecastYears.indexOf(2032);
+                                        
+                                        if (index2023 !== -1 && index2032 !== -1) {
+                                            const aapc = calculateAAPG(forecastData, index2023, index2032);
+                                            if (aapc !== null) {
+                                                let aapgSymbol = '';
+                                                let aapgSign = '';
+                                                
+                                                if (Math.abs(aapc) >= 0.005) {
+                                                    aapgSymbol = aapc > 0 ? '▲' : '▼';
+                                                    aapgSign = aapc > 0 ? '+' : '';
+                                                }
+                                                
+                                                tooltipLines.push(`AAPC 2023-2032: ${aapgSymbol} ${aapgSign}${aapc.toFixed(2)}%`);
+                                            }
+                                        }
                                     }
                                 }
+                                
+                                return tooltipLines;
                             }
                             
-                            // Format to millions with 2 decimal places
+                            // Format to millions with 2 decimal places for historical data
                             const valueInMillions = (value / 1000000).toFixed(2);
                             return `${label}: HK$${valueInMillions} million`;
                         }
