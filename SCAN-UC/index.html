@@ -125,9 +125,24 @@
             border-radius: 2px;
         }
         
+        .legend-dotted {
+            border-top-style: dotted;
+            border-top-width: 3px;
+            background-color: transparent !important;
+        }
+
         .legend-dash {
             border-top-style: dashed;
-            border-top-width: 2px;
+            border-top-width: 3px;
+            background-color: transparent !important;
+        }
+
+        .legend-line-example {
+            display: inline-block;
+            width: 30px;
+            height: 3px;
+            margin-right: 5px;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -434,60 +449,51 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
     const legendElement = document.getElementById(legendElementId);
     legendElement.innerHTML = '';
     
-    // Create first row for historical data
-    const historicalRow = document.createElement('div');
-    historicalRow.className = 'legend-row';
+    // Create first row for data items
+    const firstRow = document.createElement('div');
+    firstRow.className = 'legend-row';
     
-    // Create second row for forecast data
-    const forecastRow = document.createElement('div');
-    forecastRow.className = 'legend-row';
+    // Create second row for line style indicators
+    const secondRow = document.createElement('div');
+    secondRow.className = 'legend-row';
     
-    // Historical data items
-    const historicalItems = [
+    // Data items (only show these, no forecast versions)
+    const dataItems = [
         {
-            label: 'Total  ',
+            label: 'Total',
             color: '#fb8500',
-            datasetIndex: 0,
-            dash: false
+            datasetIndex: 0
         },
         {
-            label: 'Male  ',
+            label: 'Male',
             color: '#023047',
-            datasetIndex: 1,
-            dash: false
+            datasetIndex: 1
         },
         {
-            label: 'Female  ',
+            label: 'Female',
             color: '#8ecae6',
-            datasetIndex: 2,
-            dash: false
+            datasetIndex: 2
         }
     ];
     
-    // Forecast data items
-    const forecastItems = [
+    // Line style indicator items
+    const styleItems = [
         {
-            label: 'Total (Forecast)',
-            color: '#fb8500',
-            datasetIndex: isRate ? 4 : 4,
-            dash: true
+            label: 'Historical Data',
+            color: '#000000',
+            solid: true,
+            clickable: false
         },
         {
-            label: 'Male (Forecast)',
-            color: '#023047',
-            datasetIndex: isRate ? 7 : 7,
-            dash: true
-        },
-        {
-            label: 'Female (Forecast)',
-            color: '#8ecae6',
-            datasetIndex: isRate ? 10 : 10, 
-            dash: true
+            label: 'Forecasted Data',
+            color: '#000000',
+            dashed: true,
+            clickable: false
         }
     ];
     
-    // Add historical items to the first row
-    historicalItems.forEach(item => {
+    // Add data items to the first row
+    dataItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         legendItem.dataset.index = item.datasetIndex;
@@ -500,10 +506,6 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
         const colorSpan = document.createElement('span');
         colorSpan.className = 'legend-color';
         colorSpan.style.backgroundColor = item.color;
-        if (item.dash) {
-            colorSpan.classList.add('legend-dash');
-            colorSpan.style.borderTopColor = item.color;
-        }
         
         const textSpan = document.createElement('span');
         textSpan.className = 'legend-text';
@@ -512,7 +514,7 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
         legendItem.appendChild(colorSpan);
         legendItem.appendChild(textSpan);
         
-        // Add click event handler
+        // Add click event handler for toggling visibility
         legendItem.addEventListener('click', () => {
             const index = parseInt(legendItem.dataset.index);
             const meta = chart.getDatasetMeta(index);
@@ -527,141 +529,100 @@ function createCustomLegend(chart, legendElementId, isRate = false) {
                 legendItem.classList.remove('hidden');
             }
             
+            // Calculate correct dataset indices for your chart structure
+            // 0: Total (historical), 1: Male (historical), 2: Female (historical)
+            // 3: Total Lower PI, 4: Total (Forecast), 5: Total Upper PI
+            // 6: Male Lower PI, 7: Male (Forecast), 8: Male Upper PI
+            // 9: Female Lower PI, 10: Female (Forecast), 11: Female Upper PI
+            
+            const forecastIndex = 4 + (index * 3); // Forecast datasets: 4, 7, 10
+            const lowerPIIndex = 3 + (index * 3);  // Lower PI datasets: 3, 6, 9
+            const upperPIIndex = 5 + (index * 3);  // Upper PI datasets: 5, 8, 11
+            
+            // Toggle corresponding forecast dataset
+            if (forecastIndex < chart.data.datasets.length) {
+                const forecastMeta = chart.getDatasetMeta(forecastIndex);
+                forecastMeta.hidden = meta.hidden;
+            }
+            
+            // Toggle prediction intervals
+            if (lowerPIIndex < chart.data.datasets.length) {
+                const lowerMeta = chart.getDatasetMeta(lowerPIIndex);
+                lowerMeta.hidden = meta.hidden;
+            }
+            
+            if (upperPIIndex < chart.data.datasets.length) {
+                const upperMeta = chart.getDatasetMeta(upperPIIndex);
+                upperMeta.hidden = meta.hidden;
+            }
+            
             // Update chart
             chart.update();
         });
         
-        historicalRow.appendChild(legendItem);
+        firstRow.appendChild(legendItem);
     });
     
-    // Add forecast items to the second row
-    forecastItems.forEach(item => {
+    // Add style indicator items to the second row
+    styleItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
-        // Always add the 'hidden' class initially for forecast items
-        const meta = chart.getDatasetMeta(item.datasetIndex);
-        if (meta.hidden) {
-            legendItem.classList.add('hidden');
-        }
-        legendItem.dataset.index = item.datasetIndex;
+        legendItem.style.cursor = 'default';
         
-        const colorSpan = document.createElement('span');
-        colorSpan.className = 'legend-color';
-        colorSpan.style.backgroundColor = item.color;
-        if (item.dash) {
-            colorSpan.classList.add('legend-dash');
-            colorSpan.style.borderTopColor = item.color;
+        // Create a canvas element to draw the line example
+        const canvas = document.createElement('canvas');
+        canvas.width = 30;
+        canvas.height = 6;
+        canvas.style.width = '30px';
+        canvas.style.height = '6px';
+        canvas.style.marginRight = '5px';
+        canvas.style.verticalAlign = 'middle';
+        
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = item.color;
+        ctx.fillStyle = item.color;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        
+        const dotRadius = 2.5;
+        
+        if (item.solid) {
+            ctx.setLineDash([]);
+        } else if (item.dashed) {
+            ctx.setLineDash([5, 5]);
         }
+        
+        // Draw the line
+        ctx.beginPath();
+        ctx.moveTo(4, 3);
+        ctx.lineTo(26, 3);
+        ctx.stroke();
+        
+        // Reset line dash for dots
+        ctx.setLineDash([]);
+        
+        // Draw dots
+        ctx.beginPath();
+        ctx.arc(4, 3, dotRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(26, 3, dotRadius, 0, 2 * Math.PI);
+        ctx.fill();
         
         const textSpan = document.createElement('span');
         textSpan.className = 'legend-text';
         textSpan.textContent = item.label;
         
-        legendItem.appendChild(colorSpan);
+        legendItem.appendChild(canvas);
         legendItem.appendChild(textSpan);
         
-        // Add click event handler for forecast items
-        legendItem.addEventListener('click', () => {
-            const index = parseInt(legendItem.dataset.index);
-            const meta = chart.getDatasetMeta(index);
-            
-            // Check if the legend item has the 'hidden' class (i.e., it's currently showing as strikethrough)
-            const isCurrentlyHidden = legendItem.classList.contains('hidden');
-            
-            // Update the dataset visibility based on the current visual state
-            meta.hidden = !isCurrentlyHidden;
-            
-            // Update class to reflect the new state
-            if (isCurrentlyHidden) {
-                // If it was hidden (strikethrough), remove that class to show it
-                legendItem.classList.remove('hidden');
-            } else {
-                // If it was showing, add the hidden class to hide it
-                legendItem.classList.add('hidden');
-            }
-            
-            // Track forecast visibility directly based on the new visual state
-            const label = chart.data.datasets[index].label;
-            
-            if (label === 'Total (Forecast)') {
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-                    
-                    // Also toggle prediction intervals to match
-                    const lowerIndex = isRate ? 3 : 3;
-                    const upperIndex = isRate ? 5 : 5;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.total = isCurrentlyHidden; // True if we're making it visible
-                    
-                    // Also toggle prediction intervals to match
-                    const lowerIndex = isRate ? 3 : 3;
-                    const upperIndex = isRate ? 5 : 5;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            } else if (label === 'Male (Forecast)') {
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.male = isCurrentlyHidden;
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 6 : 6;
-                    const upperIndex = isRate ? 8 : 8;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.male = isCurrentlyHidden;
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 6 : 6;
-                    const upperIndex = isRate ? 8 : 8;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            } else if (label === 'Female (Forecast)') {
-                if (legendElementId.includes('prevalence')) {
-                    prevForecastVisible.female = isCurrentlyHidden;
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 9 : 9;
-                    const upperIndex = isRate ? 11 : 11;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                } else {
-                    forecastVisible.female = isCurrentlyHidden;
-                    
-                    // Also toggle prediction intervals
-                    const lowerIndex = isRate ? 9 : 9;
-                    const upperIndex = isRate ? 11 : 11;
-                    
-                    chart.getDatasetMeta(lowerIndex).hidden = !isCurrentlyHidden;
-                    chart.getDatasetMeta(upperIndex).hidden = !isCurrentlyHidden;
-                }
-            }
-            
-            // Update chart
-            chart.update();
-            
-            // Adjust x-axis if needed
-            if (legendElementId.includes('prevalence')) {
-                adjustPrevalenceChartAxis(chart);
-            } else {
-                adjustChartAxis(chart);
-            }
-        });
-        
-        forecastRow.appendChild(legendItem);
+        secondRow.appendChild(legendItem);
     });
     
-    // Add rows to legend element
-    legendElement.appendChild(historicalRow);
-    legendElement.appendChild(forecastRow);
+    // Add both rows to legend element
+    legendElement.appendChild(firstRow);
+    legendElement.appendChild(secondRow);
 }
 
 function updateIncidenceCharts() {
@@ -899,8 +860,7 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,  
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1211,7 +1171,7 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
-            maintainAspectRatio: false,
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1540,7 +1500,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
-            maintainAspectRatio: false,  
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1851,7 +1811,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
-            maintainAspectRatio: false,  
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend

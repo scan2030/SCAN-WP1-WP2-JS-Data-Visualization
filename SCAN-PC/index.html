@@ -583,9 +583,13 @@ function adjustPrevalenceChartAxis(chart) {
     const legendElement = document.getElementById(legendElementId);
     legendElement.innerHTML = '';
     
-    // Create one row for all legend items
-    const legendRow = document.createElement('div');
-    legendRow.className = 'legend-row';
+    // Create first row for age group data items
+    const firstRow = document.createElement('div');
+    firstRow.className = 'legend-row';
+    
+    // Create second row for line style indicators
+    const secondRow = document.createElement('div');
+    secondRow.className = 'legend-row';
     
     // Age group data items (only show these, no forecast versions)
     const dataItems = [
@@ -627,7 +631,7 @@ function adjustPrevalenceChartAxis(chart) {
         }
     ];
     
-    // Add data items to the row
+    // Add data items to the first row
     dataItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
@@ -696,16 +700,10 @@ function adjustPrevalenceChartAxis(chart) {
             chart.update();
         });
         
-        legendRow.appendChild(legendItem);
+        firstRow.appendChild(legendItem);
     });
     
-    // Add a small separator between age groups and line styles
-    const separator = document.createElement('div');
-    separator.style.width = '20px';
-    separator.style.display = 'inline-block';
-    legendRow.appendChild(separator);
-    
-    // Add style indicator items to the same row
+    // Add style indicator items to the second row
     styleItems.forEach(item => {
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
@@ -764,13 +762,13 @@ function adjustPrevalenceChartAxis(chart) {
         legendItem.appendChild(canvas);
         legendItem.appendChild(textSpan);
         
-        legendRow.appendChild(legendItem);
+        secondRow.appendChild(legendItem);
     });
     
-    // Add the single row to legend element
-    legendElement.appendChild(legendRow);
+    // Add both rows to legend element
+    legendElement.appendChild(firstRow);
+    legendElement.appendChild(secondRow);
 }
-
 
 function updateIncidenceCharts() {
     // Get chart contexts
@@ -1069,6 +1067,7 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1531,6 +1530,7 @@ function updateIncidenceCharts() {
             ]
         },
         options: {
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -1929,6 +1929,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
@@ -2304,6 +2305,7 @@ function updatePrevalenceCharts() {
             ]
         },
         options: {
+            aspectRatio: window.innerWidth < 768 ? 1 : 2, // Adjust aspect ratio for mobile
             plugins: {
                 legend: {
                     display: false // Disable built-in legend
